@@ -1,0 +1,10 @@
+.*.swp
+._*
+.DS_Store
+.git
+.npmrc
+.lock-wscript
+*.env
+npm-debug.log
+node_modules
+package-lock.json

@@ -1,0 +1,31 @@
+{
+  "name": "@mattduffy/exiftool",
+  "version": "1.0.0",
+  "description": "A simple object oriented wrapper for the exiftool image metadata utility.",
+  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "index.js"
+    },
+    "package.json": "./package.json",
+    "./tests": "./tests/*.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattduffy/exiftool.git"
+  },
+  "author": "mattduffy@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mattduffy/exiftool/issues"
+  },
+  "homepage": "https://github.com/mattduffy/exiftool#readme",
+  "devDependencies": {
+    "eslint": "^8.12.0",
+    "debug": "^4.3.4"
+  }
+}
