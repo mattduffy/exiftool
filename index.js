@@ -12,9 +12,10 @@ const cmd = util.promisify(require('node:child_process').exec)
 /**
  * @todo [x] create a class constructor method to initialize exiftool
  * @todo [x] create an options object to set exiftool output behavior
- * @todo [ ] create class method to extract metadata using custom shortcut
- * @todo [ ] create class method to extract all metadata
+ * @todo [ ] create a class method to extract metadata using custom shortcut
+ * @todo [ ] create a class method to extract all metadata
  * @todo [ ] create a class method to extract arbitrary metadata
+ * @todo [ ] create a class method to strip all metadata from an image
  * 
  */
 
@@ -25,7 +26,7 @@ const cmd = util.promisify(require('node:child_process').exec)
  * @author Matthew Duffy <mattduffy@gmail.com>
  * @module @mattduffy/exiftool
  */
-export default class Exiftool {
+export class Exiftool {
   /**
    * Create an instance of the exiftool wrapper.
    * @param { string } path - String value of file path to an image file or directory of images.
