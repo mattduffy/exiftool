@@ -12,7 +12,8 @@
     "./tests": "./tests/*.js"
   },
   "scripts": {
-    "test": "DEBUG=exiftool:* jest --coverage"
+    "test-babel": "DEBUG=exiftool:* jest --coverage",
+    "test": "DEBUG=exiftool:* node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
   "homepage": "https://github.com/mattduffy/exiftool#readme",
   "devDependencies": {
     "@babel/preset-env": "7.19.4",
+    "@jest/globals": "29.2.0",
     "babel-jest": "29.2.0",
     "debug": "^4.3.4",
     "eslint": "^8.12.0",

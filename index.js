@@ -3,11 +3,15 @@
  * @author Matthew Duffy <mattduffy@gmail.com>
  */
 
+//const util = require('node:util')
 import { stat } from 'node:fs/promises'
+import util from 'node:util'
+import { exec } from 'node:child_process'
+const cmd = util.promisify(exec)
+//const cmd = util.promisify(require('node:child_process').exec)
+
 import Debug from 'debug'
 const debug = Debug('exiftool:metadata')
-const util = require('node:util')
-const cmd = util.promisify(require('node:child_process').exec)
 
 /**
  * @todo [x] create a class constructor method to initialize exiftool
@@ -34,7 +38,8 @@ export class Exiftool {
   constructor( path ) {
     this._cwd = process.cwd()
     this._path = path || null
-    this._isDirectory = null
+    //this._isDirectory = null
+    //this._fileStats = null
     this._opts = {}
     this._opts.exif_config = `-config ${this._cwd}/exiftool.config`
     this._opts.outputFormat = `-json`
