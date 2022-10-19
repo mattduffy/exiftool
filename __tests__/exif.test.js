@@ -58,7 +58,7 @@ describe("Exiftool metadata extractor", () => {
     expect.assertions(2)
     let img = new Exiftool()
     img = await img.init('./__tests__/')
-    img._exiftool_config = `${img.cwd}/exiftool.config.test`
+    img._exiftool_config = `${img._cwd}/exiftool.config.test`
     let result = await img.createExiftoolConfigFile()
     expect(result.value).toBeTruthy()
     expect(img.hasExiftoolConfigFile()).toBeTruthy()
@@ -73,7 +73,26 @@ describe("Exiftool metadata extractor", () => {
     expect(result2).toBeFalsy()
   })
 
-  test("setShortcut: add a new shortcut to the exiftool.config file", async () => {
+  test("addShortcut: add a new shortcut to the exiftool.config file", async () => {
+    expect.assertions(4)
+    let img1 = new Exiftool()
+    let MattsNewCut = `MattsNewCut => ['exif:createdate', 'file:FileName']`
+    let result1 = await img1.addShortcut( MattsNewCut )
+    expect(result1.value).toBeTruthy()
+    expect(result1.error).toBeNull()
+
+    // check if new shortcut exists and can be returned
+    let img2 = new Exiftool()
+    img2 = await img2.init('__tests__/copper.jpg')
+    let result2 = await img2.hasShortcut('MattsNewCut')
+    expect(result2).toBeTruthy()
+
+    // get metadata using new shortcut
+    img2.setShortcut( 'MattsNewCut' )
+    debug(img2._command) 
+    let metadata = await img2.getMetadata()
+    debug(metadata)
+    expect(metadata).not.toBeNull()
 
   })
 

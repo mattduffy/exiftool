@@ -3,6 +3,10 @@
  * @author Matthew Duffy <mattduffy@gmail.com>
  */
 
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 import { stat } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import { exec } from 'node:child_process'
@@ -22,13 +26,12 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] create a jest test to verify creation of new config file
  * @todo [x] create a class method to check if a shortcut exists
  * @todo [x] create a jest test to check shortcut names
+ * @todo [x] create a class method to add a shortcut
+ * @todo [x] create a jest test to add a shortcut
  * @todo [x] create a class method to extract metadata using custom shortcut
- * @todo [ ] create a class method to add/update a shortcut
- * @todo [ ] create a jest test to add/update a shortcut
  * @todo [ ] create a class method to extract all metadata
  * @todo [ ] create a class method to extract arbitrary metadata
  * @todo [ ] create a class method to strip all metadata from an image
- * @todo [ ] create a jest test for each class method
  * 
  */
 
@@ -44,7 +47,8 @@ export class Exiftool {
    * @param { string } path String value of file path to an image file or directory of images.
    */
   constructor( path ) {
-    this._cwd = process.cwd()
+    //this._cwd = process.cwd()
+    this._cwd = __dirname
     this._path = path || null
     this._exiftool_config = `${this._cwd}/exiftool.config`
     this._isDirectory = null
@@ -190,7 +194,8 @@ export class Exiftool {
     let stub = `%Image::ExifTool::UserDefined::Shortcuts = (
     BasicShortcut => ['file:FileName','exif:ImageDescription','iptc:ObjectName','iptc:Caption-Abstract','iptc:Keywords','Composite:GPSPosition'],
 );`
-    let fileName = `${this._cwd}/exiftool.config.test`
+    //let fileName = `${this._cwd}/exiftool.config`
+    let fileName = this._exiftool_config
     let echo = `echo "${stub}" > ${fileName}`
     try {
       debug('attemtping to create exiftool.config file')
@@ -244,6 +249,38 @@ export class Exiftool {
   }
 
   /**
+   * Add a new shortcut to the exiftool.config file.
+   * @summary Add a new shortcut to the exiftool.config file.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @param { string } newShortcut The string of text representing the new shortcut to add to exiftool.config file.
+   * @return { Object } Returns an object literal with success or error messages.
+   */
+  async addShortcut( newShortcut ) {
+    let o = {value: null, error: null}
+    if ('undefined' == newShortcut || '' == newShortcut) {
+      o.error = "Shortcut must be provided as a string."
+    } else {
+      try {
+        let sedCommand = `sed -i.bk "2i\\    ${newShortcut}," ${this._exiftool_config}`
+        debug(`sed command: ${sedCommand}`)
+        let output = await cmd( sedCommand )
+        let stdout = output.stdout
+        debug(output)
+        if ('' == output.stderr) {
+          o.value = true
+        } else {
+          o.error = false
+        }
+      } catch (e) {
+        debug('failed to add shortcut to exiftool.config file')
+        debug(e)
+      }
+    }
+    return o
+  }
+
+  /**
    * Set a specific exiftool shortcut.  The new shortcut must already exist in the exiftool.config file.
    * @summary Set a specific exiftool shortcut to use.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -254,10 +291,11 @@ export class Exiftool {
     let o = {value: null, error: null}
     if ('undefined' == shortcut || null == shortcut) {
       o.error = "Shortcut must be a string value."
+    } else {
+      this._opts.shortcut = `-${shortcut}`
+      this.setCommand()
+      o.value = true
     }
-    this._opts.shortcut = shortcut
-    this.setCommand()
-    o.value = true
     return o
   }
 
