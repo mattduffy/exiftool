@@ -16,23 +16,26 @@ const debug = Debug('exiftool:metadata')
 
 /**
  * @todo [x] create a class constructor method to initialize exiftool
- * @todo [x] create a jest test for instance creation
+ * @todo [x] add a jest test case for instance creation
  * @todo [x] create an options object to set exiftool output behavior
  * @todo [x] create a class method to verify exiftool is avaiable
- * @todo [x] create a jest test to verify exiftool is available
+ * @todo [x] add a jest test case to verify exiftool is available
  * @todo [x] create a class method to check if exiftool.config file exists
- * @todo [x] create a jest test to find present/missing config file
+ * @todo [x] add a jest test case to find present/missing config file
  * @todo [x] create a class method to create exiftool.config file if missing
- * @todo [x] create a jest test to verify creation of new config file
+ * @todo [x] add a jest test case to verify creation of new config file
  * @todo [x] create a class method to check if a shortcut exists
- * @todo [x] create a jest test to check shortcut names
+ * @todo [x] add a jest test case to check if a shortcut exists
  * @todo [x] create a class method to add a shortcut
- * @todo [x] create a jest test to add a shortcut
+ * @todo [x] add a jest test case to add a shortcut
  * @todo [x] create a class method to extract metadata using custom shortcut
- * @todo [ ] create a class method to extract all metadata
- * @todo [ ] create a class method to extract arbitrary metadata
+ * @todo [x] add a jest test case to extract metadata using a custom shortcut
+ * @todo [x] create a class method to extract all metadata
+ * @todo [x] add a jest test case to extract all metadata
+ * @todo [x] create a class method to extract arbitrary metadata
+ * @todo [x] add a jest test case to extract arbitrary metadata
  * @todo [ ] create a class method to strip all metadata from an image
- * 
+ * @todo [ ] add a jest test case to strip all metadata from an image
  */
 
 /**
@@ -44,7 +47,7 @@ const debug = Debug('exiftool:metadata')
 export class Exiftool {
   /**
    * Create an instance of the exiftool wrapper.
-   * @param { string } path String value of file path to an image file or directory of images.
+   * @param { string } path - String value of file path to an image file or directory of images.
    */
   constructor( path ) {
     //this._cwd = process.cwd()
@@ -57,6 +60,7 @@ export class Exiftool {
     this._opts.exiftool_config = `-config ${this._exiftool_config}`
     this._opts.outputFormat = `-json`
     this._opts.gpsFormat = `-c "%.6f"`
+    this._opts.tagList = null
     this._opts.shortcut = `-BasicShortcut`
     this._opts.includeTagFamily = `-G`
     this._opts.compactFormat = `-s3`
@@ -71,7 +75,7 @@ export class Exiftool {
    * @summary Initializes some asynchronus class properties not done in the constructor.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param { string } path A file system path to set for exiftool to process.
+   * @param { string } path - A file system path to set for exiftool to process.
    * @return { (Exiftool|boolean) } Returns fully initialized instance or false.
    */
   async init( path ) {
@@ -132,7 +136,7 @@ export class Exiftool {
    * @summary Set the path of image file or directory of images to process with exiftool.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param { string } path A file system path to set for exiftool to process.
+   * @param { string } path - A file system path to set for exiftool to process.
    * @return { Object } Returns an object literal with success or error messages.
    */
   async setPath( path ) {
@@ -216,7 +220,7 @@ export class Exiftool {
    * Check the exiftool.config to see if the specified shortcut exists.
    * @summary Check to see if a shortcut exists.
    * @author Matthew Duffy <mattduffy@gmail.com>
-   * @param { string } shortcut The name of a shortcut to check if it exists in the exiftool.config.
+   * @param { string } shortcut - The name of a shortcut to check if it exists in the exiftool.config.
    * @return { boolean } Returns true if the shortcut exists in the exiftool.config, false if not.
    */
   async hasShortcut( shortcut ) {
@@ -253,7 +257,7 @@ export class Exiftool {
    * @summary Add a new shortcut to the exiftool.config file.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param { string } newShortcut The string of text representing the new shortcut to add to exiftool.config file.
+   * @param { string } newShortcut - The string of text representing the new shortcut to add to exiftool.config file.
    * @return { Object } Returns an object literal with success or error messages.
    */
   async addShortcut( newShortcut ) {
@@ -284,7 +288,7 @@ export class Exiftool {
    * Set a specific exiftool shortcut.  The new shortcut must already exist in the exiftool.config file.
    * @summary Set a specific exiftool shortcut to use.
    * @author Matthew Duffy <mattduffy@gmail.com>
-   * @param { string } shortcut The name of a new exiftool shortcut to use.
+   * @param { string } shortcut - The name of a new exiftool shortcut to use.
    * @return { Object } Returns an object literal with success or error messages.
    */
   setShortcut( shortcut ) {
@@ -293,6 +297,40 @@ export class Exiftool {
       o.error = "Shortcut must be a string value."
     } else {
       this._opts.shortcut = `-${shortcut}`
+      this.setCommand()
+      o.value = true
+    }
+    return o
+  }
+
+  /**
+   * Set one or more explicit metadata tags in the command string for exiftool to extract.
+   * @summary Set one or more explicit metadata tags in the command string for exiftool to extract.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @param { (string|Array) } tagsToExtract - A string or an array of metadata tags to be passed to exiftool.
+   * @return { Object } Returns an object literal with success or error messages.
+   */
+  setMetadataTags( tagsToExtract ) {
+    let tags = tagsToExtract
+    debug(`>> ${tags}`)
+    let o = {value: null, error: null}
+    if ('undefined' == tags || '' == tags || null == tags) {
+      o.error = 'One or more metadata tags are required'
+    } else {
+      if (Array === tags.constructor) {
+        debug('array of tags')
+        // join array elements in to a string
+        this._opts.tagList = `-${tags.join(' -')}`
+      }
+      if (String === tags.constructor) {
+        debug('string of tags')
+        if (null == tags.match(/^-/)) {
+          this._opts.tagList = `-${tags}`
+        }
+        this._opts.tagList = tags
+      }
+      debug(this._opts.tagList)
+      debug(this._command)
       this.setCommand()
       o.value = true
     }
@@ -334,15 +372,34 @@ export class Exiftool {
    * @summary Get the exif metadata for one or more image files.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
+   * @param { string } [ fileOrDir=null ] - The string path to a file or directory for exiftool to use.
+   * @param { string } [ shortcut=null ] - A string containing the name of an existing shortcut for exiftool to use.
+   * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
    * @return { (Object|Error) } JSON object literal of metadata or Error if failed.
    */
-  async getMetadata() {
+  async getMetadata( fileOrDir=null, shortcut=null, tagsToExtract=null) {
+    if (null != fileOrDir && '' != fileOrDir) {
+      this.setPath(fileOrDir)
+    }
+    if (null != shortcut && '' != shortcut) {
+      this.setShortcut(shortcut)
+    }
+    if (null != tagsToExtract && '' != tagsToExtract) {
+      let options = this.setMetadataTags(tagsToExtract)
+      debug(options)
+      debug(this._opts)
+      if (options.error) {
+        throw new Error('tag list option failed')
+      }
+    }
+    debug(this._command)
     try {
       let metadata = await cmd(this._command)
       if ('' != metadata.stderr) {
         throw new Exeception(metadata.stderr)
       }
       metadata = JSON.parse(metadata.stdout)
+      metadata.exiftool_command = this._command
       debug(metadata)
       return metadata
     } catch (e) {

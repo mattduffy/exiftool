@@ -1,4 +1,6 @@
 tmp
+*.config.bk
+*.config.test
 .*.swp
 ._*
 .DS_Store

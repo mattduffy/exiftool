@@ -96,4 +96,28 @@ describe("Exiftool metadata extractor", () => {
 
   })
 
+  test("getMetadata: specify tag list as an optional parameter", async () => {
+    expect.assertions(5) 
+    // test adding additional tags to the command
+    let img1 = new Exiftool()
+    img1 = await img1.init('./__tests__/copper.jpg')
+    let result1 = await img1.getMetadata('', '', ['file:FileSize', 'file:DateTimeOriginal', 'file:Model'])
+    expect(result1[0]).toHaveProperty('File:FileSize')
+    expect(result1[0]).toHaveProperty('EXIF:ImageDescription')
+
+    // test changing the file from one set in init()
+    let img2 = new Exiftool()
+    img2 = await img2.init('__tests__/copper.jpg')
+    let result2 = await img2.getMetadata('__tests__/IMG_1820.jpg', '', ['file:FileSize', 'file:DateTimeOriginal', 'file:ImageSize'])
+    expect(result2[0]).toHaveProperty('File:FileSize')
+    expect(result2[0]).toHaveProperty('Composite:GPSPosition')
+
+    // test passing a new shortcut name
+    let img3 = new Exiftool()
+    img3 = await img3.init('__tests__/IMG_1820.heic')
+    let result3 = await img3.getMetadata('', 'MattsNewCut', ['file:FileSize', 'file:ImageSize'])
+    expect(result3[0]).toHaveProperty('SourceFile')
+
+  })
+
 })
