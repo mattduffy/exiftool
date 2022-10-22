@@ -10,9 +10,11 @@ debug(Exiftool)
 
 // Set the items to be used for all the tests here as constants.
 const testsDir = './__tests__'
-const image1 = `${testsDir}/copper.jpg`
-const image2 = `${testsDir}/IMG_1820.jpg`
-const image3 = `${testsDir}/IMG_1820.heic`
+const imageDir = './images'
+const image1 = `${imageDir}/copper.jpg`
+const image2 = `${imageDir}/IMG_1820.jpg`
+const image3 = `${imageDir}/IMG_1820.heic`
+const image4 = `${imageDir}/strip.jpg`
 const RealShortcut = 'BasicShortcut'
 const FakeShortcut = 'FakeShortcut'
 const NewShortcut = 'MattsNewCut'
@@ -33,16 +35,16 @@ afterAll( async () => {
 })
 
 describe("Exiftool metadata extractor", () => {
-  xtest("it should be an instance of Exiftool", () => {
+  test("it should be an instance of Exiftool", () => {
     expect(new Exiftool()).toBeInstanceOf(Exiftool)
   })
 
-  xtest("init: should fail without a path arguement", async () => {
+  test("init: should fail without a path arguement", async () => {
     let img = new Exiftool()
     expect(img = await img.init()).toBeFalsy()
   })
 
-  xtest("init: with a path should return a configured exiftool", async () => {
+  test("init: with a path should return a configured exiftool", async () => {
     expect.assertions(2)
     let img = new Exiftool()
     img = await img.init( image1 )
@@ -50,13 +52,13 @@ describe("Exiftool metadata extractor", () => {
     expect(img).toHaveProperty('_fileStats')
   })
 
-  xtest("which: exiftool is accessible in the path", async () => {
+  test("which: exiftool is accessible in the path", async () => {
     let img  = new Exiftool()
     let exif = await img.which()
     expect(exif.value).toMatch(/exiftool/)
   })
 
-  xtest("setPath: is the path to file or directory", async () => {
+  test("setPath: is the path to file or directory", async () => {
     expect.assertions(4)
     let img = new Exiftool()
     // missing path value
@@ -68,7 +70,7 @@ describe("Exiftool metadata extractor", () => {
     expect(result2.error).toBeNull()
   })
 
-  xtest("hasExiftoolConfigFile: check if exiftool.config file is present", async () => {
+  test("hasExiftoolConfigFile: check if exiftool.config file is present", async () => {
     expect.assertions(2)
     let img1, img2
     img1 = new Exiftool()
@@ -79,7 +81,7 @@ describe("Exiftool metadata extractor", () => {
     expect(await img2.hasExiftoolConfigFile()).toBeFalsy()
   })
 
-  xtest("createExiftoolConfigFile: can create new exiftool.config file", async () => {
+  test("createExiftoolConfigFile: can create new exiftool.config file", async () => {
     expect.assertions(2)
     let img = new Exiftool()
     img = await img.init( testsDir )
@@ -89,7 +91,7 @@ describe("Exiftool metadata extractor", () => {
     expect(img.hasExiftoolConfigFile()).toBeTruthy()
   })
 
-  xtest("hasShortcut: check exiftool.config for a shortcut", async () => {
+  test("hasShortcut: check exiftool.config for a shortcut", async () => {
     expect.assertions(2)
     let img = new Exiftool()
     let result1 = await img.hasShortcut( RealShortcut )
@@ -128,7 +130,7 @@ describe("Exiftool metadata extractor", () => {
     expect(result1.value).toBeTruthy()
   })
 
-  xtest("getMetadata: specify tag list as an optional parameter", async () => {
+  test("getMetadata: specify tag list as an optional parameter", async () => {
     expect.assertions(2) 
     // test adding additional tags to the command
     let img1 = new Exiftool()
@@ -139,7 +141,7 @@ describe("Exiftool metadata extractor", () => {
     expect(result1[0]).toHaveProperty('EXIF:ImageDescription')
   })
 
-  xtest("getMetadata: specify new file name and tag list as an optional parameter", async () => {
+  test("getMetadata: specify new file name and tag list as an optional parameter", async () => {
     // test changing the file from one set in init()
     expect.assertions(2)
     let img2 = new Exiftool()
@@ -151,7 +153,7 @@ describe("Exiftool metadata extractor", () => {
     expect(result2[0]).toHaveProperty('Composite:GPSPosition')
   })
 
-  xtest("getMetadata: specify new shortcut name and tag list as an optional parameter", async () => {
+  test("getMetadata: specify new shortcut name and tag list as an optional parameter", async () => {
     // test passing a new shortcut name
     let img3 = new Exiftool()
     // image3 is IMG_1820.heic
@@ -160,7 +162,7 @@ describe("Exiftool metadata extractor", () => {
     expect(result3[0]).toHaveProperty('SourceFile')
   })
 
-  xtest("getMetadata: catch the forbidden -all= data stripping tag", async () => {
+  test("getMetadata: catch the forbidden -all= data stripping tag", async () => {
     // test catching the -all= stripping tag in get request
     let img4 = new Exiftool()
     // init with the copper.jpg image1
@@ -172,8 +174,14 @@ describe("Exiftool metadata extractor", () => {
     }
   })
 
-  xtest("stripMetadata: strip all the metadata out of a file and keep a backup of the original file", async () => {
-
+  test("stripMetadata: strip all the metadata out of a file and keep a backup of the original file", async () => {
+    expect.assertions(2)
+    let img1 = new Exiftool()
+    // init with strip.jpg image 4
+    img1 = await img1.init( image4 )
+    let result = await img1.stripMetadata()
+    expect(result.value).toBeTruthy()
+    expect(result.original).toMatch(/_original/)
   })
 
 })

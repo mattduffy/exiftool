@@ -38,8 +38,8 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] getMetadata: create a class method to extract arbitrary metadata
  * @todo [x] - add a jest test case to extract arbitrary metadata
  * @todo [x] - add a jest test case to prevent passing -all= tag to getMetadata method
- * @todo [ ] stripMetadata: create a class method to strip all metadata from an image
- * @todo [ ] add a jest test case to strip all metadata from an image
+ * @todo [x] stripMetadata: create a class method to strip all metadata from an image
+ * @todo [x] add a jest test case to strip all metadata from an image
  */
 
 /**
@@ -55,7 +55,7 @@ export class Exiftool {
    */
   constructor( path ) {
     debug('constructor method entered')
-    //this._cwd = process.cwd()
+    this._imgDir = path || null
     this._cwd = __dirname
     this._path = path || null
     this._exiftool_config = `${this._cwd}/exiftool.config`
@@ -69,7 +69,7 @@ export class Exiftool {
     this._opts.shortcut = `-BasicShortcut`
     this._opts.includeTagFamily = `-G`
     this._opts.compactFormat = `-s3`
-    this._opts.quite = `-q`
+    this._opts.quiet = `-q`
     this._opts.excludeTypes = `--ext TXT --ext JS  --ext JSON  --ext MJS --ext CJS --ext MD --ext HTML`
     this._command = null 
     //this.setCommand()
@@ -166,6 +166,17 @@ export class Exiftool {
       o.errorStack = e.stack
     }
     return o
+  }
+
+  /**
+   * Get the fully qualified path to the image (or directory) specified in init.
+   * @summary Get the full qualified path to the image.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @asynn
+   * @return { Object } Returns an object literal with success or error messages.
+   */
+  async getPath() {
+    
   }
 
   /**
@@ -470,19 +481,36 @@ export class Exiftool {
    * @summary Run the composed exiftool command to strip all the metadata from a file.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param 
    * @return { (Object|Error) } Returns a JSON object literal with success message or throws an Error if failed.
    */
   async stripMetadata() {
     debug('stripMetadata method entered')
+    let o = {value: null, error: null}
     if (null == this._path) {
       throw new Error('No image was specified to strip all metadata from.')
     }
     if (this._isDirectory) {
       throw new Error('A directory was given.  Use a path to a specific file instead.')
     }
-      // exiftool -all= -o %f_copy%-.4nc.%e copper.jpg
-
+    // exiftool -all= -o %f_copy%-.4nc.%e copper.jpg
+    let exiftool = await this.which()
+    let file = `${this._cwd}/${this._path}`
+    let strip = `${exiftool.value} -config ${this._exiftool_config} -all= ${file}`
+    o.command = strip
+    try {
+      let result = await cmd( strip ) 
+      debug(result)
+      if (null == result.stdout.trim().match(/files updated/)) {
+        throw new Error(`Failed to strip metadata from image - ${file}.`)
+      }
+      o.value = true
+      o.original = `${file}_original`
+    } catch (e) {
+      o.value = false
+      o.error = e
+      debug(o)
+    }
+    return o
   }
 
 
