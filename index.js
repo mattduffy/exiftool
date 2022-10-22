@@ -15,26 +15,30 @@ import Debug from 'debug'
 const debug = Debug('exiftool:metadata')
 
 /**
- * @todo [x] create a class constructor method to initialize exiftool
- * @todo [x] add a jest test case for instance creation
- * @todo [x] create an options object to set exiftool output behavior
- * @todo [x] create a class method to verify exiftool is avaiable
- * @todo [x] add a jest test case to verify exiftool is available
- * @todo [x] create a class method to check if exiftool.config file exists
- * @todo [x] add a jest test case to find present/missing config file
- * @todo [x] create a class method to create exiftool.config file if missing
- * @todo [x] add a jest test case to verify creation of new config file
- * @todo [x] create a class method to check if a shortcut exists
- * @todo [x] add a jest test case to check if a shortcut exists
- * @todo [x] create a class method to add a shortcut
- * @todo [x] add a jest test case to add a shortcut
- * @todo [x] create a class method to extract metadata using custom shortcut
- * @todo [x] add a jest test case to extract metadata using a custom shortcut
- * @todo [x] create a class method to extract all metadata
- * @todo [x] add a jest test case to extract all metadata
- * @todo [x] create a class method to extract arbitrary metadata
- * @todo [x] add a jest test case to extract arbitrary metadata
- * @todo [ ] create a class method to strip all metadata from an image
+ * @todo [x] constructor: create a class constructor method to initialize exiftool
+ * @todo [x] init: create an options object to set exiftool output behavior
+ * @todo [x] - add a jest test case for instance creation
+ * @todo [x] which: create a class method to verify exiftool is avaiable
+ * @todo [x] - add a jest test case to verify exiftool is available
+ * @todo [x] hasExiftoolConfigFile: create a class method to check if exiftool.config file exists
+ * @todo [x] - add a jest test case to find present/missing config file
+ * @todo [x] createExiftoolConfigFile: create a class method to create exiftool.config file if missing
+ * @todo [x] - add a jest test case to verify creation of new config file
+ * @todo [x] - add a jest teardown to remove newly created copies of the exiftool.config file
+ * @todo [x] hasShortcut: create a class method to check if a shortcut exists
+ * @todo [x] - add a jest test case to check if a shortcut exists
+ * @todo [x] addShortcut: create a class method to add a shortcut
+ * @todo [x] - add a jest test case to add a shortcut
+ * @todo [x] removeShortcut: create a class method to remove a shortcut
+ * @todo [x] - add a jest test case to remove a shortcut
+ * @todo [x] getMetadata: create a class method to extract metadata using custom shortcut
+ * @todo [x] - add a jest test case to extract metadata using a custom shortcut
+ * @todo [x] getMetadata: create a class method to extract all metadata
+ * @todo [x] - add a jest test case to extract all metadata
+ * @todo [x] getMetadata: create a class method to extract arbitrary metadata
+ * @todo [x] - add a jest test case to extract arbitrary metadata
+ * @todo [x] - add a jest test case to prevent passing -all= tag to getMetadata method
+ * @todo [ ] stripMetadata: create a class method to strip all metadata from an image
  * @todo [ ] add a jest test case to strip all metadata from an image
  */
 
@@ -50,6 +54,7 @@ export class Exiftool {
    * @param { string } path - String value of file path to an image file or directory of images.
    */
   constructor( path ) {
+    debug('constructor method entered')
     //this._cwd = process.cwd()
     this._cwd = __dirname
     this._path = path || null
@@ -79,6 +84,7 @@ export class Exiftool {
    * @return { (Exiftool|boolean) } Returns fully initialized instance or false.
    */
   async init( path ) {
+    debug('init method entered')
     if (('undefined' == typeof path) && (null == this._path)) {
       debug('Param: path - was undefined.')
       debug(`Instance property: path - ${this._path}`)
@@ -128,6 +134,7 @@ export class Exiftool {
    * @return { undefined }
    */
   setCommand() {
+    debug('setCommand method entered')
     this._command = `${this._executable} ${this.getOptions()} ${this._path}`
   }
 
@@ -140,6 +147,7 @@ export class Exiftool {
    * @return { Object } Returns an object literal with success or error messages.
    */
   async setPath( path ) {
+    debug('setPath method entered')
     let o = {value: null, error: null}
     if ('undefined' == path || null == path) {
       o.error = "A path to image or directory is required."
@@ -167,6 +175,7 @@ export class Exiftool {
    * @return { boolean } Returns True if present, False if not.
    */
   async hasExiftoolConfigFile() {
+    debug('hasExiftoolConfigFile method entered')
     debug('>')
     let exists = false
     let file = this._exiftool_config
@@ -194,6 +203,7 @@ export class Exiftool {
    * @return { Object } Returns an object literal with success or error messages.
    */
   async createExiftoolConfigFile() {
+    debug('createExiftoolConfigFile method entered')
     let o = {value: null, error: null}
     let stub = `%Image::ExifTool::UserDefined::Shortcuts = (
     BasicShortcut => ['file:FileName','exif:ImageDescription','iptc:ObjectName','iptc:Caption-Abstract','iptc:Keywords','Composite:GPSPosition'],
@@ -224,6 +234,7 @@ export class Exiftool {
    * @return { boolean } Returns true if the shortcut exists in the exiftool.config, false if not.
    */
   async hasShortcut( shortcut ) {
+    debug('hasShortcut method entered')
     let exists
     debug('>')
     if ('undefined' == shortcut || null == shortcut) {
@@ -261,9 +272,10 @@ export class Exiftool {
    * @return { Object } Returns an object literal with success or error messages.
    */
   async addShortcut( newShortcut ) {
+    debug('addShortcut method entered')
     let o = {value: null, error: null}
     if ('undefined' == newShortcut || '' == newShortcut) {
-      o.error = "Shortcut must be provided as a string."
+      o.error = "Shortcut name must be provided as a string."
     } else {
       try {
         let sedCommand = `sed -i.bk "2i\\    ${newShortcut}," ${this._exiftool_config}`
@@ -274,10 +286,46 @@ export class Exiftool {
         if ('' == output.stderr) {
           o.value = true
         } else {
-          o.error = false
+          o.value = false
+          o.error = output.stderr
         }
       } catch (e) {
-        debug('failed to add shortcut to exiftool.config file')
+        debug(`Failed to add shortcut, ${newShortcut}, to exiftool.config file`)
+        debug(e)
+      }
+    }
+    return o
+  }
+
+  /**
+   * Remove a shorcut from the exiftool.config file.
+   * @summary Remove a shortcut from the exiftool.config file.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @param { string } shortcut - A string containing the name of the shortcut to remove.
+   * @return { Object } Returns an object literal with success or error messages.
+   */
+  async removeShortcut( shortcut ) {
+    debug('removeShortcut method entered')
+    let o = {value: null, error: null}
+    if ('undefined' == shortcut || '' == shortcut) {
+      o.error = "Shortcut name must be provided as a string."
+    } else {
+      try {
+        // sed -i '/NewShortcut/d' exiftool.config.test
+        let sedCommand = `sed -i.bk "/${shortcut}/d" ${this._exiftool_config}`
+        debug(`sed command: ${sedCommand}`)
+        let output = await cmd( sedCommand )
+        let stdout = output.stdout
+        debug(output)
+        if ('' == output.stderr) {
+          o.value = true
+        } else {
+          o.value = false
+          o.error = output.stderr
+        }
+      } catch (e) {
+        debug(`Failed to remove shortcut, ${shortcut}, from the exiftool.config file.`)
         debug(e)
       }
     }
@@ -292,6 +340,7 @@ export class Exiftool {
    * @return { Object } Returns an object literal with success or error messages.
    */
   setShortcut( shortcut ) {
+    debug('setShortcut method entered')
     let o = {value: null, error: null}
     if ('undefined' == shortcut || null == shortcut) {
       o.error = "Shortcut must be a string value."
@@ -311,6 +360,7 @@ export class Exiftool {
    * @return { Object } Returns an object literal with success or error messages.
    */
   setMetadataTags( tagsToExtract ) {
+    debug('setMetadataTags method entered')
     let tags = tagsToExtract
     debug(`>> ${tags}`)
     let o = {value: null, error: null}
@@ -344,6 +394,7 @@ export class Exiftool {
    * @return { string } Commandline options to exiftool.
    */
   getOptions() {
+    debug('getOptions method entered')
     return Object.values(this._opts).join(' ')
   }
 
@@ -355,6 +406,7 @@ export class Exiftool {
    * @return { Object } Returns an object literal with file system path to exiftool binary or error if not found.
    */
   async which() {
+    debug('which method entered')
     let o = {value: null, error: null}
     try {
       let path = await cmd('which exiftool')
@@ -368,16 +420,17 @@ export class Exiftool {
   }
 
   /**
-   * Run the composed exiftool commend to get the requested exif metadata.
+   * Run the composed exiftool command to get the requested exif metadata.
    * @summary Get the exif metadata for one or more image files.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
    * @param { string } [ fileOrDir=null ] - The string path to a file or directory for exiftool to use.
    * @param { string } [ shortcut=null ] - A string containing the name of an existing shortcut for exiftool to use.
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
-   * @return { (Object|Error) } JSON object literal of metadata or Error if failed.
+   * @return { (Object|Error) } JSON object literal of metadata or throws an Error if failed.
    */
   async getMetadata( fileOrDir=null, shortcut=null, tagsToExtract=null) {
+    debug('getMetadata method entered')
     if (null != fileOrDir && '' != fileOrDir) {
       this.setPath(fileOrDir)
     }
@@ -385,6 +438,10 @@ export class Exiftool {
       this.setShortcut(shortcut)
     }
     if (null != tagsToExtract && '' != tagsToExtract) {
+      if (tagsToExtract.includes('-all= ')) {
+        debug("Can't include metadata stripping -all= tag in get metadata request.")
+        throw new Error("Can't include metadata stripping -all= tag in get metadata reqeust.")
+      }
       let options = this.setMetadataTags(tagsToExtract)
       debug(options)
       debug(this._opts)
@@ -396,7 +453,7 @@ export class Exiftool {
     try {
       let metadata = await cmd(this._command)
       if ('' != metadata.stderr) {
-        throw new Exeception(metadata.stderr)
+        throw new Error(metadata.stderr)
       }
       metadata = JSON.parse(metadata.stdout)
       metadata.exiftool_command = this._command
@@ -407,5 +464,27 @@ export class Exiftool {
       return e
     }
   }
+
+  /**
+   * Run the composed exiftool command to strip all the metadata from a file, keeping a backup copy of the original file.
+   * @summary Run the composed exiftool command to strip all the metadata from a file.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @param 
+   * @return { (Object|Error) } Returns a JSON object literal with success message or throws an Error if failed.
+   */
+  async stripMetadata() {
+    debug('stripMetadata method entered')
+    if (null == this._path) {
+      throw new Error('No image was specified to strip all metadata from.')
+    }
+    if (this._isDirectory) {
+      throw new Error('A directory was given.  Use a path to a specific file instead.')
+    }
+      // exiftool -all= -o %f_copy%-.4nc.%e copper.jpg
+
+  }
+
+
 }
 
