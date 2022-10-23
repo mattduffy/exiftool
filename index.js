@@ -20,6 +20,8 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] - add a jest test case for instance creation
  * @todo [x] which: create a class method to verify exiftool is avaiable
  * @todo [x] - add a jest test case to verify exiftool is available
+ * @todo [ ] getPath: create a class method to return the configured path to image / image directory
+ * @todo [ ] - add a jest test case to get the value of instance _path property
  * @todo [x] hasExiftoolConfigFile: create a class method to check if exiftool.config file exists
  * @todo [x] - add a jest test case to find present/missing config file
  * @todo [x] createExiftoolConfigFile: create a class method to create exiftool.config file if missing
@@ -343,6 +345,7 @@ export class Exiftool {
         debug(output)
         if ('' == output.stderr) {
           o.value = true
+          o.command = sedCommand
         } else {
           o.value = false
           o.error = output.stderr
