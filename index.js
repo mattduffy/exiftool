@@ -339,13 +339,13 @@ export class Exiftool {
       try {
         // sed -i '/NewShortcut/d' exiftool.config.test
         let sedCommand = `sed -i.bk "/${shortcut}/d" ${this._exiftool_config}`
+        o.command = sedCommand
         debug(`sed command: ${sedCommand}`)
         let output = await cmd( sedCommand )
         let stdout = output.stdout
         debug(output)
         if ('' == output.stderr) {
           o.value = true
-          o.command = sedCommand
         } else {
           o.value = false
           o.error = output.stderr
@@ -487,6 +487,7 @@ export class Exiftool {
       return metadata
     } catch (e) {
       debug(e)
+      e.exiftool_command = this._command
       return e
     }
   }
