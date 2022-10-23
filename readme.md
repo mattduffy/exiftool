@@ -24,7 +24,7 @@ At this point, Exiftool is ready to extract metadata from the image ```myNicePho
 
 There are a few options to choose what metadata is extracted from the file:
 - using default options, including a pre-configured shortcut
-- override the default shortcut name with a different one (alread added to the exiftool.config file)
+- override the default shortcut name with a different one (already added to the exiftool.config file)
 - adding additional [Exiftool Tags](https://exiftool.org/TagNames/index.html) to extract beyound those included in the default shortcut
 
 ```javascript
@@ -62,12 +62,46 @@ let metadata = await exiftool.getMetadata()
     'IPTC:ObjectName': 'Tiny copper curtain rod',
     'IPTC:Caption-Abstract': 'Copper curtain fixture',
     'IPTC:Keywords': 'copper curtain fixture',
-    'Composite:GPSPosition': '37.824506 N, 122.208642 W'
+    'Composite:GPSPosition': '36.195406 N, 122.208642 W'
   },
   exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -c "%.6f" -BasicShortcut -G -s3 -q --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/copper.jpg'
 ]
  ```
-The ```exiftool_command``` is the command composed from all the default options, using the pre-configured BasicShortcut saved in the exiftool.config file.
+The ```exiftool_command``` property is the command composed from all the default options, using the pre-configured BasicShortcut saved in the exiftool.config file.
+
+Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the ```_opts.excludeTypes``` class property.
+
+```javascript
+import { Exiftool } from '@mattduffy/exiftool'
+let exiftool = new Exiftool()
+exiftool = await exiftool.init( 'images/' )
+let metadata = await exiftool.getMetadata()
+ console.log( metatdata )
+[
+  {
+    SourceFile: 'images/IMG_1820.heic',
+    'File:FileName': 'IMG_1820.heic',
+    'Composite:GPSPosition': '22.531478 N, 81.907106 W'
+  },
+  {
+    SourceFile: 'images/copper.jpg',
+    'File:FileName': 'copper.jpg',
+    'EXIF:ImageDescription': 'Copper curtain fixture',
+    'IPTC:ObjectName': 'Tiny copper curtain rod',
+    'IPTC:Caption-Abstract': 'Copper curtain fixture',
+    'IPTC:Keywords': 'copper curtain fixture',
+    'Composite:GPSPosition': '36.195406 N, 122.208642 W'
+  },
+  {
+    SourceFile: 'images/IMG_1820.jpg',
+    'File:FileName': 'IMG_1820.jpg',
+    'Composite:GPSPosition': '22.531478 N, 81.907106 W'
+  },
+  {
+    exiftool_command: '/usr/local/bin/exiftool -config /home/node_package_development/exiftool/exiftool.config -json -c "%.6f"  -BasicShortcut -G -s3 -q --ext TXT --ext JS  --ext JSON  --ext MJS --ext CJS --ext MD --ext HTML images/'
+  }
+]
+``
 
 ### The exiftool.config file
 This file is not required to be present to process metadata by the original ```exiftool```, but it can help a lot with complex queries, so this Exiftool package uses it.  During the ```init()``` setup, a check is performed to see if the file is present in the root of the package directory.  If no file is found, a very basic file is created, populated with a simple shortcut called ```BasicShortcut```.  The path to this file can be overridden to use a different file.
@@ -101,7 +135,7 @@ exiftool = await exiftool.init( '/path/to/image.jpg' )
 let result = exiftool.setShortcut( 'MyCoolShortcut' )
 let metadata = await exiftool.getMetadata()
 
-// Or, pass the shortcut name as a parameter in the getMetadata() method
+// Alternatively, pass the shortcut name as a parameter in the getMetadata() method
 let metadata = await exiftool.getMetadata( '', 'MyCoolShortcut', '' )
 ```
 
@@ -118,6 +152,9 @@ if (await exiftool.hasShortcut( 'MyCoolShortcut' )) {
   console.log( result )
 }
 ```
+
+Exiftool creates a backup of the ```exiftool.config``` file each time it is modified by the ```addShortcut()``` or ```removeShortcut()``` methods.
+
 ### Stripping Metadata From an Image
 It is possible to strip all of the existing metadata from an image with this Exiftool package.  The default behavior of the original ```exiftool``` utility, when writing metadata to an image is to make a backup copy of the original image file.  The new file will keep the original file name, while the backup will have **_original** appended to the name.  Exiftool maintains this default behavior.
 
