@@ -74,7 +74,7 @@ export class Exiftool {
     this._opts.includeTagFamily = `-G`
     this._opts.compactFormat = `-s3`
     this._opts.quiet = `-q`
-    this._opts.excludeTypes = `--ext TXT --ext JS  --ext JSON  --ext MJS --ext CJS --ext MD --ext HTML`
+    this._opts.excludeTypes = `--ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext CSS`
     this._command = null 
     //this.setCommand()
   }
@@ -337,7 +337,6 @@ export class Exiftool {
       o.error = "Shortcut name must be provided as a string."
     } else {
       try {
-        // sed -i '/NewShortcut/d' exiftool.config.test
         let sedCommand = `sed -i.bk "/${shortcut}/d" ${this._exiftool_config}`
         o.command = sedCommand
         debug(`sed command: ${sedCommand}`)
@@ -482,7 +481,7 @@ export class Exiftool {
         throw new Error(metadata.stderr)
       }
       metadata = JSON.parse(metadata.stdout)
-      metadata.exiftool_command = this._command
+      metadata.push( {exiftool_command: this._command} )
       debug(metadata)
       return metadata
     } catch (e) {
