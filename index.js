@@ -25,6 +25,8 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] createExiftoolConfigFile: create a class method to create exiftool.config file if missing
  * @todo [x] - add a jest test case to verify creation of new config file
  * @todo [x] - add a jest teardown to remove newly created copies of the exiftool.config file
+ * @todo [ ] setConfigPath: create a class method to point to a different exiftool.config file
+ * @todo [ ] - add a jest test case to verify changing exiftool.config file
  * @todo [x] hasShortcut: create a class method to check if a shortcut exists
  * @todo [x] - add a jest test case to check if a shortcut exists
  * @todo [x] addShortcut: create a class method to add a shortcut
@@ -238,6 +240,23 @@ export class Exiftool {
   }
 
   /**
+   * Set the path to a different exiftool.config path to be used.
+   * @summary Set the path to a different exiftool.config path to be used.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async 
+   * @param { string } newConfigPath - A string containing the file system path to a valid exiftool.config file.
+   * @return { Object } Returns an object literal with success or error messages.
+   */
+  async setConfigPath( newConfigPath ) {
+    debug('setConfigPath method entered')
+    let o = {value: null, error: null}
+    // fill this in.
+    // change this._exiftool_config as well as this._opts._exiftool_config
+    // compose the command 
+    return o
+  }
+
+  /**
    * Check the exiftool.config to see if the specified shortcut exists.
    * @summary Check to see if a shortcut exists.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -296,6 +315,7 @@ export class Exiftool {
         debug(output)
         if ('' == output.stderr) {
           o.value = true
+          o.command = sedCommand
         } else {
           o.value = false
           o.error = output.stderr
