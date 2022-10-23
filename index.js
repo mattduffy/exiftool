@@ -266,30 +266,22 @@ export class Exiftool {
   async hasShortcut( shortcut ) {
     debug('hasShortcut method entered')
     let exists
-    debug('>')
     if ('undefined' == shortcut || null == shortcut) {
-      debug('>>')
       exists = false
     } else {
-      debug('>>>')
       try {
         let output = await cmd(`grep ${shortcut} ${this._exiftool_config}`)
         let stdout = output.stdout.trim().match(shortcut)
-        debug('>>>>')
         if (shortcut == stdout[0]) {
-          debug('>>>>>')
           exists = true
         } else {
-          debug('>>>>>>')
           exists = false
         }
       } catch (e) {
-        debug('>>>>>>>')
         debug(e)
         exists = false
       }
     }
-    debug('>>>>>>>>')
     return exists
   }
 
