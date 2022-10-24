@@ -101,7 +101,7 @@ let metadata = await exiftool.getMetadata()
     exiftool_command: '/usr/local/bin/exiftool -config /home/node_package_development/exiftool/exiftool.config -json -c "%.6f"  -BasicShortcut -G -s3 -q --ext TXT --ext JS  --ext JSON  --ext MJS --ext CJS --ext MD --ext HTML images/'
   }
 ]
-``
+```
 
 ### The exiftool.config file
 This file is not required to be present to process metadata by the original ```exiftool```, but it can help a lot with complex queries, so this Exiftool package uses it.  During the ```init()``` setup, a check is performed to see if the file is present in the root of the package directory.  If no file is found, a very basic file is created, populated with a simple shortcut called ```BasicShortcut```.  The path to this file can be overridden to use a different file.
