@@ -64,7 +64,9 @@ let metadata = await exiftool.getMetadata()
     'IPTC:Keywords': 'copper curtain fixture',
     'Composite:GPSPosition': '36.195406 N, 122.208642 W'
   },
-  exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -c "%.6f" -BasicShortcut -G -s3 -q --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/copper.jpg'
+  {
+    exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -c "%.6f" -BasicShortcut -G -s3 -q --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/copper.jpg'
+  }
 ]
  ```
 The ```exiftool_command``` property is the command composed from all the default options, using the pre-configured BasicShortcut saved in the exiftool.config file.
