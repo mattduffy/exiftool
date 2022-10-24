@@ -41,7 +41,7 @@ let metadata3 = await exiftool.getMetadata( '', 'ADifferentSavedShortcut', '' )
 // Adding Tags to command to be extracted, in additon to those 
 // specified in the shortcut.  For example, extracting LensInfo, 
 // FocalLength, ImageWidth and ImageHeight values (if present).
-let metadata4 = await exiftool.getMetadata( '', '', 'EXIF:LensInfo EXIF:FocalLength File:ImageWidth File:ImageHeight' )
+let metadata4 = await exiftool.getMetadata( '', '', 'EXIF:LensInfo', 'EXIF:FocalLength', 'File:ImageWidth', 'File:ImageHeight' )
 
 // All three parameters can be used at once if desired.
 let metadata5 = await exiftool.getMetadata( '/path/to/a/different/image.jpg', 'ADifferentSavedShortcut', 'EXIF:LensInfo EXIF:FocalLength File:ImageWidth File:ImageHeight' )
