@@ -44,7 +44,7 @@ let metadata3 = await exiftool.getMetadata( '', 'ADifferentSavedShortcut', '' )
 let metadata4 = await exiftool.getMetadata( '', '', 'EXIF:LensInfo', 'EXIF:FocalLength', 'File:ImageWidth', 'File:ImageHeight' )
 
 // All three parameters can be used at once if desired.
-let metadata5 = await exiftool.getMetadata( '/path/to/a/different/image.jpg', 'ADifferentSavedShortcut', 'EXIF:LensInfo EXIF:FocalLength File:ImageWidth File:ImageHeight' )
+let metadata5 = await exiftool.getMetadata( '/path/to/a/different/image.jpg', 'ADifferentSavedShortcut', 'EXIF:LensInfo', 'EXIF:FocalLength', 'File:ImageWidth', 'File:ImageHeight' )
 ```
 
 The simplest use of Exiftool looks like this:
@@ -128,7 +128,7 @@ exiftool = await exiftool.init( '/path/to/image.jpg' )
 // present in the package provided exiftool.config file
 if (!await exiftool.hasShortcut( 'MyCoolShortcut' )) {
   // Shortcut was not found, save the shortcut definition to the exiftool.config file
-  let result = await exiftool.addShortcut( "MyCoolShortcut => ['EXIF:LensInfo EXIF:FocalLength File:ImageWidth File:ImageHeight']" )
+  let result = await exiftool.addShortcut( "MyCoolShortcut => ['EXIF:LensInfo', 'EXIF:FocalLength', 'File:ImageWidth', 'File:ImageHeight']" )
   console.log( result )
 }
 ```
