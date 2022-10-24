@@ -71,11 +71,14 @@ let metadata = await exiftool.getMetadata()
  ```
 The ```exiftool_command``` property is the command composed from all the default options, using the pre-configured BasicShortcut saved in the exiftool.config file.
 
-Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories containing images just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the ```_opts.excludeTypes``` class property.
+Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories containing images just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the list of extensions to exclude with the ```setExtensionsToExclude()``` method.
 
 ```javascript
 import { Exiftool } from '@mattduffy/exiftool'
 let exiftool = new Exiftool()
+let extensionsArray = img.getExtensionsToExclude()
+extensionsArray.push( 'ESLINT' )
+img.setExtensionsToExclude( extensionsArray )
 exiftool = await exiftool.init( 'images/' )
 let metadata = await exiftool.getMetadata()
  console.log( metatdata )
@@ -100,7 +103,7 @@ let metadata = await exiftool.getMetadata()
     'Composite:GPSPosition': '22.531478 N, 81.907106 W'
   },
   {
-    exiftool_command: '/usr/local/bin/exiftool -config /home/node_package_development/exiftool/exiftool.config -json -c "%.6f"  -BasicShortcut -G -s3 -q --ext TXT --ext JS  --ext JSON  --ext MJS --ext CJS --ext MD --ext HTML images/'
+    exiftool_command: '/usr/local/bin/exiftool -config /home/node_package_development/exiftool/exiftool.config -json -c "%.6f"  -BasicShortcut -G -s3 -q --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext ESLINT images/'
   }
 ]
 ```
