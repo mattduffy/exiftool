@@ -68,6 +68,26 @@ describe("Exiftool metadata extractor", () => {
     expect(exif.value).toMatch(/exiftool/)
   })
 
+  test("get/setConfigPath: change the file system path to the exiftool.config file", async () => {
+    expect.assertions(4)
+    let img = new Exiftool()
+    // setConfigPathTest/exiftool.config
+    let newConfigFile = `${__dirname}/setConfigPathTest/exiftool.config`
+    let oldConfigFile = img.getConfigPath()
+    expect(oldConfigFile.value).toMatch( /exiftool\/exiftool.config$/ )
+
+    let result = await img.setConfigPath( newConfigFile )
+    expect(result.value).toBeTruthy()
+    expect(img._command).toMatch( /setConfigPathTest/ )
+
+    // test a bad file path
+    // setConfigPathTest/bad/exiftool.config
+    let badConfigFile = `${__dirname}/setConfigPathTest/bad/exiftool.config`
+    let badResult = await img.setConfigPath( badConfigFile )
+    // o.e.code == 'ENOENT'
+    expect(badResult.e.code).toMatch( /ENOENT/ )
+  })
+
   test("setPath: is the path to file or directory", async () => {
     expect.assertions(4)
     let img = new Exiftool()

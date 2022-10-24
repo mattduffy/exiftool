@@ -21,7 +21,7 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] which: create a class method to verify exiftool is avaiable
  * @todo [x] - add a jest test case to verify exiftool is available
  * @todo [x] get/setExtensionsToExclude: create class methods to get/set extention type array
- * @todo [ ] - add a jest test case to verify get/set methods
+ * @todo [x] - add a jest test case to verify get/set methods
  * @todo [ ] getPath: create a class method to return the configured path to image / image directory
  * @todo [ ] - add a jest test case to get the value of instance _path property
  * @todo [x] hasExiftoolConfigFile: create a class method to check if exiftool.config file exists
@@ -29,8 +29,8 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] createExiftoolConfigFile: create a class method to create exiftool.config file if missing
  * @todo [x] - add a jest test case to verify creation of new config file
  * @todo [x] - add a jest teardown to remove newly created copies of the exiftool.config file
- * @todo [ ] setConfigPath: create a class method to point to a different exiftool.config file
- * @todo [ ] - add a jest test case to verify changing exiftool.config file
+ * @todo [x] get/setConfigPath: create a class method to point to a different exiftool.config file
+ * @todo [x] - add a jest test case to verify changing exiftool.config file
  * @todo [x] hasShortcut: create a class method to check if a shortcut exists
  * @todo [x] - add a jest test case to check if a shortcut exists
  * @todo [x] addShortcut: create a class method to add a shortcut
@@ -249,7 +249,6 @@ export class Exiftool {
     debug('>')
     let exists = false
     let file = this._exiftool_config
-    //let file = `${this._exiftool_config}.missing`
     try {
       debug('>>')
       let stats = await stat(file)
@@ -297,8 +296,8 @@ export class Exiftool {
   }
 
   /**
-   * Set the path to a different exiftool.config path to be used.
-   * @summary Set the path to a different exiftool.config path to be used.
+   * Set the file system path to a different exiftool.config to be used.
+   * @summary Set the file system path to a different exiftool.config to be used.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async 
    * @param { string } newConfigPath - A string containing the file system path to a valid exiftool.config file.
@@ -307,9 +306,38 @@ export class Exiftool {
   async setConfigPath( newConfigPath ) {
     debug('setConfigPath method entered')
     let o = {value: null, error: null}
-    // fill this in.
-    // change this._exiftool_config as well as this._opts._exiftool_config
-    // compose the command 
+    if ('' == newConfigPath || null == newConfigPath) {
+      o.error = "A valid file system path to an exiftool.config file is required."
+    } else {
+      try {
+        let stats = await stat(newConfigPath)
+        o.value = true
+        this._exiftool_config = newConfigPath
+        this._opts.exiftool_config = `-config ${this._exiftool_config}`
+        this.setCommand()
+      } catch (e) {
+        o.value = false
+        o.error = e.message
+        o.e = e
+      }
+    }
+    return o
+  }
+
+  /**
+   * Get the instance property for the file system path to the exiftool.config file.
+   * @summary Get the instance property for the file system path to the exiftool.config file.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @returns { Object } Returns an object literal with success or error messages.
+   */
+  getConfigPath() {
+    debug('getConfigPath method entered')
+    let o = {value: null, error: null}
+    if ('' == this._exiftool_config || null == this._exiftool_config || 'undefined' == typeof this._exiftool_config) {
+      o.error = "No path set for the exiftool.config file."
+    } else {
+      o.value = this._exiftool_config
+    }
     return o
   }
 
