@@ -65,6 +65,7 @@ export class Exiftool {
     this._exiftool_config = `${this._cwd}/exiftool.config`
     this._isDirectory = null
     this._fileStats = null
+    this._extensionsToExclude = ['TXT', 'JS', 'JSON', 'MJS', 'CJS', 'MD', 'HTML', 'CSS']
     this._opts = {}
     this._opts.exiftool_config = `-config ${this._exiftool_config}`
     this._opts.outputFormat = `-json`
@@ -74,9 +75,48 @@ export class Exiftool {
     this._opts.includeTagFamily = `-G`
     this._opts.compactFormat = `-s3`
     this._opts.quiet = `-q`
-    this._opts.excludeTypes = `--ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext CSS`
+    this._opts.excludeTypes = ''
+    //this._opts.excludeTypes = `--ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext CSS`
     this._command = null 
     //this.setCommand()
+  }
+
+  /**
+   * Compose the command line string of file type extentions for exiftool to exclude.
+   * @summary Compose the command line string of file type extensions for exiftool to exclude.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { undefined }
+   */
+  setExcludeTypes() {
+    this._extensionsToExclude.forEach( ext => { this._opts.excludeTypes += `--ext ${ext} ` } )
+  }
+
+  /**
+   * Get the instance property array of file type extentions for exiftool to exclude.
+   * @summary Get the instance property array of file type extensions for exiftool to exclude.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @returns { Array<string> } The array of file type extentions for exiftool to exclude.
+   */
+  getExtensionsToExclude() {
+    return this._extensionsToExclude
+  }
+
+  /**
+   * Set the array of file type extentions that exiftool should ignore while recursing through a directory.
+   * @summary Set the array of file type extenstions that exiftool should ignore while recursing through a directory.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @throws Will throw an error if extensionsArray is not an Array.
+   * @param { Array<string> } extentionsArray - An array of file type extentions.
+   * @return { undefined } 
+   */
+  setExtensionsToExclude( extentionsArray ) {
+    if (extentionsArray.constructor !== Array) {
+      throw new Error("Expecting an array of file extensions.")
+    } else {
+      this._extensionsToExclude = extentionsArray 
+      this._opts.excludeTypes = ''
+      this.setExcludeTypes()
+    }
   }
 
   /**
@@ -129,6 +169,20 @@ export class Exiftool {
       debug(e)
     }
     return this
+  }
+
+  /**
+   * Concatenate all the exiftool options together into a single string.
+   * @summary Concatenate all the exiftool options together into a single string.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { string } Commandline options to exiftool.
+   */
+  getOptions() {
+    debug('getOptions method entered')
+    if('' == this._opts.excludeTypes) {
+      this.setExcludeTypes()
+    }
+    return Object.values(this._opts).join(' ')
   }
 
   /**
@@ -413,17 +467,6 @@ export class Exiftool {
   }
 
   /**
-   * Concatenate all the exiftool options together into a single string.
-   * @summary Concatenate all the exiftool options together into a single string.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @return { string } Commandline options to exiftool.
-   */
-  getOptions() {
-    debug('getOptions method entered')
-    return Object.values(this._opts).join(' ')
-  }
-
-  /**
    * Find the path to the executable exiftool binary.
    * @summary Find the path to the executable exiftool binary.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -449,6 +492,8 @@ export class Exiftool {
    * @summary Get the exif metadata for one or more image files.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
+   * @throws Will throw an error if -all= tag is included in the tagsToExtract parameter.
+   * @throws Will throw an errof if process.exec returns a value in stderr.
    * @param { string } [ fileOrDir=null ] - The string path to a file or directory for exiftool to use.
    * @param { string } [ shortcut=null ] - A string containing the name of an existing shortcut for exiftool to use.
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
@@ -496,6 +541,9 @@ export class Exiftool {
    * @summary Run the composed exiftool command to strip all the metadata from a file.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
+   * @throws Will throw an error if instance property _path is missing.
+   * @throws Will throw an error if instance property _isDirectory is true.
+   * @throws Will throw an error if child_process.exec returns a value in stderr.
    * @return { (Object|Error) } Returns a JSON object literal with success message or throws an Error if failed.
    */
   async stripMetadata() {
