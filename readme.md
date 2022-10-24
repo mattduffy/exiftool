@@ -114,7 +114,16 @@ This file is not required to be present to process metadata by the original ```e
 ```javascript
 let exiftool = new Exiftool()
 exiftool = await exiftool.init( '/path/to/image.jpg' )
-exiftool.setConfigPath( '/path/to/new/exiftool.config' )
+let oldConfigPath = exiftool.getConfigPath()
+console.log( oldConfigPath )
+{
+  value: '/path/to/the/exiftool/exiftool.config',
+  error: null
+}
+```
+```javascript
+let newConfigFile = '/path/to/new/exiftool.config'
+let result = await exiftool.setConfigPath( newConfigFile )
 let metadata = await exiftool.getMetadata()
 ```
 
