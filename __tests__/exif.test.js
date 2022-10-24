@@ -39,6 +39,16 @@ describe("Exiftool metadata extractor", () => {
     expect(new Exiftool()).toBeInstanceOf(Exiftool)
   })
 
+  test("setExtensionsToExclude: update array of file type extensions to exclude", async () => {
+    let img = new Exiftool()
+    let extensionsArray = img.getExtensionsToExclude()
+    extensionsArray.push( 'CONFIG' )
+    img.setExtensionsToExclude( extensionsArray )
+    img = await img.init( image1 )
+    let excludes = img._opts.excludeTypes
+    expect( excludes ).toMatch( /CONFIG/ )
+  })
+
   test("init: should fail without a path arguement", async () => {
     let img = new Exiftool()
     expect(img = await img.init()).toBeFalsy()

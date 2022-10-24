@@ -20,6 +20,8 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] - add a jest test case for instance creation
  * @todo [x] which: create a class method to verify exiftool is avaiable
  * @todo [x] - add a jest test case to verify exiftool is available
+ * @todo [x] get/setExtensionsToExclude: create class methods to get/set extention type array
+ * @todo [ ] - add a jest test case to verify get/set methods
  * @todo [ ] getPath: create a class method to return the configured path to image / image directory
  * @todo [ ] - add a jest test case to get the value of instance _path property
  * @todo [x] hasExiftoolConfigFile: create a class method to check if exiftool.config file exists
@@ -76,47 +78,8 @@ export class Exiftool {
     this._opts.compactFormat = `-s3`
     this._opts.quiet = `-q`
     this._opts.excludeTypes = ''
-    //this._opts.excludeTypes = `--ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext CSS`
     this._command = null 
     //this.setCommand()
-  }
-
-  /**
-   * Compose the command line string of file type extentions for exiftool to exclude.
-   * @summary Compose the command line string of file type extensions for exiftool to exclude.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @return { undefined }
-   */
-  setExcludeTypes() {
-    this._extensionsToExclude.forEach( ext => { this._opts.excludeTypes += `--ext ${ext} ` } )
-  }
-
-  /**
-   * Get the instance property array of file type extentions for exiftool to exclude.
-   * @summary Get the instance property array of file type extensions for exiftool to exclude.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @returns { Array<string> } The array of file type extentions for exiftool to exclude.
-   */
-  getExtensionsToExclude() {
-    return this._extensionsToExclude
-  }
-
-  /**
-   * Set the array of file type extentions that exiftool should ignore while recursing through a directory.
-   * @summary Set the array of file type extenstions that exiftool should ignore while recursing through a directory.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @throws Will throw an error if extensionsArray is not an Array.
-   * @param { Array<string> } extentionsArray - An array of file type extentions.
-   * @return { undefined } 
-   */
-  setExtensionsToExclude( extentionsArray ) {
-    if (extentionsArray.constructor !== Array) {
-      throw new Error("Expecting an array of file extensions.")
-    } else {
-      this._extensionsToExclude = extentionsArray 
-      this._opts.excludeTypes = ''
-      this.setExcludeTypes()
-    }
   }
 
   /**
@@ -169,6 +132,44 @@ export class Exiftool {
       debug(e)
     }
     return this
+  }
+
+  /**
+   * Compose the command line string of file type extentions for exiftool to exclude.
+   * @summary Compose the command line string of file type extensions for exiftool to exclude.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { undefined }
+   */
+  setExcludeTypes() {
+    this._extensionsToExclude.forEach( ext => { this._opts.excludeTypes += `--ext ${ext} ` } )
+  }
+
+  /**
+   * Get the instance property array of file type extentions for exiftool to exclude.
+   * @summary Get the instance property array of file type extensions for exiftool to exclude.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @returns { Array<string> } The array of file type extentions for exiftool to exclude.
+   */
+  getExtensionsToExclude() {
+    return this._extensionsToExclude
+  }
+
+  /**
+   * Set the array of file type extentions that exiftool should ignore while recursing through a directory.
+   * @summary Set the array of file type extenstions that exiftool should ignore while recursing through a directory.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @throws Will throw an error if extensionsArray is not an Array.
+   * @param { Array<string> } extentionsArray - An array of file type extentions.
+   * @return { undefined } 
+   */
+  setExtensionsToExclude( extentionsArray ) {
+    if (extentionsArray.constructor !== Array) {
+      throw new Error("Expecting an array of file extensions.")
+    } else {
+      this._extensionsToExclude = extentionsArray 
+      this._opts.excludeTypes = ''
+      this.setExcludeTypes()
+    }
   }
 
   /**
