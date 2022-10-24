@@ -71,7 +71,7 @@ let metadata = await exiftool.getMetadata()
  ```
 The ```exiftool_command``` property is the command composed from all the default options, using the pre-configured BasicShortcut saved in the exiftool.config file.
 
-Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the ```_opts.excludeTypes``` class property.
+Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories containing images just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the ```_opts.excludeTypes``` class property.
 
 ```javascript
 import { Exiftool } from '@mattduffy/exiftool'
