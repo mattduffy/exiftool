@@ -22,8 +22,8 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] - add a jest test case to verify exiftool is available
  * @todo [x] get/setExtensionsToExclude: create class methods to get/set extention type array
  * @todo [x] - add a jest test case to verify get/set methods
- * @todo [ ] getPath: create a class method to return the configured path to image / image directory
- * @todo [ ] - add a jest test case to get the value of instance _path property
+ * @todo [x] getPath: create a class method to return the configured path to image / image directory
+ * @todo [x] - add a jest test case to get the value of instance _path property
  * @todo [x] hasExiftoolConfigFile: create a class method to check if exiftool.config file exists
  * @todo [x] - add a jest test case to find present/missing config file
  * @todo [x] createExiftoolConfigFile: create a class method to create exiftool.config file if missing
@@ -45,7 +45,7 @@ const debug = Debug('exiftool:metadata')
  * @todo [x] - add a jest test case to extract arbitrary metadata
  * @todo [x] - add a jest test case to prevent passing -all= tag to getMetadata method
  * @todo [x] stripMetadata: create a class method to strip all metadata from an image
- * @todo [x] add a jest test case to strip all metadata from an image
+ * @todo [x] - add a jest test case to strip all metadata from an image
  */
 
 /**
@@ -62,11 +62,11 @@ export class Exiftool {
   constructor( path ) {
     debug('constructor method entered')
     this._imgDir = path || null
-    this._cwd = __dirname
     this._path = path || null
-    this._exiftool_config = `${this._cwd}/exiftool.config`
     this._isDirectory = null
     this._fileStats = null
+    this._cwd = __dirname
+    this._exiftool_config = `${this._cwd}/exiftool.config`
     this._extensionsToExclude = ['TXT', 'JS', 'JSON', 'MJS', 'CJS', 'MD', 'HTML', 'CSS']
     this._opts = {}
     this._opts.exiftool_config = `-config ${this._exiftool_config}`
@@ -78,8 +78,7 @@ export class Exiftool {
     this._opts.compactFormat = `-s3`
     this._opts.quiet = `-q`
     this._opts.excludeTypes = ''
-    this._command = null 
-    //this.setCommand()
+    this._command = null
   }
 
   /**
@@ -101,7 +100,8 @@ export class Exiftool {
         await this.setPath(path)
       } catch (e) {
         debug(e)
-        return false
+        //return false
+        throw e
       }
     } 
     try {
@@ -135,69 +135,6 @@ export class Exiftool {
   }
 
   /**
-   * Compose the command line string of file type extentions for exiftool to exclude.
-   * @summary Compose the command line string of file type extensions for exiftool to exclude.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @return { undefined }
-   */
-  setExcludeTypes() {
-    this._extensionsToExclude.forEach( ext => { this._opts.excludeTypes += `--ext ${ext} ` } )
-  }
-
-  /**
-   * Get the instance property array of file type extentions for exiftool to exclude.
-   * @summary Get the instance property array of file type extensions for exiftool to exclude.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @returns { Array<string> } The array of file type extentions for exiftool to exclude.
-   */
-  getExtensionsToExclude() {
-    return this._extensionsToExclude
-  }
-
-  /**
-   * Set the array of file type extentions that exiftool should ignore while recursing through a directory.
-   * @summary Set the array of file type extenstions that exiftool should ignore while recursing through a directory.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @throws Will throw an error if extensionsArray is not an Array.
-   * @param { Array<string> } extentionsArray - An array of file type extentions.
-   * @return { undefined } 
-   */
-  setExtensionsToExclude( extentionsArray ) {
-    if (extentionsArray.constructor !== Array) {
-      throw new Error("Expecting an array of file extensions.")
-    } else {
-      this._extensionsToExclude = extentionsArray 
-      this._opts.excludeTypes = ''
-      this.setExcludeTypes()
-    }
-  }
-
-  /**
-   * Concatenate all the exiftool options together into a single string.
-   * @summary Concatenate all the exiftool options together into a single string.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @return { string } Commandline options to exiftool.
-   */
-  getOptions() {
-    debug('getOptions method entered')
-    if('' == this._opts.excludeTypes) {
-      this.setExcludeTypes()
-    }
-    return Object.values(this._opts).join(' ')
-  }
-
-  /**
-   * Set the full command string from the options.
-   * @summary Set the full command string from the options.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @return { undefined }
-   */
-  setCommand() {
-    debug('setCommand method entered')
-    this._command = `${this._executable} ${this.getOptions()} ${this._path}`
-  }
-
-  /**
    * Set the path for image file or directory of images to process with exiftool.
    * @summary Set the path of image file or directory of images to process with exiftool.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -212,10 +149,17 @@ export class Exiftool {
       o.error = "A path to image or directory is required."
       return o
     }
+    if (!/^\//.test(path)) {
+      // the path parameter must be a fully qualified file path, starting with /
+        throw new Error("The file system path to image must be a fully qualified path, starting from root /.")
+    }
     try {
       this._path = path
       this._fileStats = await stat(path)
       this._isDirectory = this._fileStats.isDirectory()
+      if (this._fileStats.isDirectory()) {
+        this._imgDir = path
+      }
       this.setCommand()
       o.value = true
     } catch (e) {
@@ -231,11 +175,21 @@ export class Exiftool {
    * Get the fully qualified path to the image (or directory) specified in init.
    * @summary Get the full qualified path to the image.
    * @author Matthew Duffy <mattduffy@gmail.com>
-   * @asynn
+   * @async
    * @return { Object } Returns an object literal with success or error messages.
    */
   async getPath() {
-    
+    debug('getPath method entered')
+    let o = {value: null, error: null}
+    if (null == this._path || 'undefined' == typeof this._path || '' == this._path) {
+      o.error = "Path to an image file or image directory is not set."
+    } else {
+      o.value = true
+      o.file = (this._isDirectory) ? null : path.basename(this._path)
+      o.dir = (this._isDirectory) ? this._path : path.dirname(this._path)
+      o.path = this._path
+    }
+    return o
   }
 
   /**
@@ -293,6 +247,90 @@ export class Exiftool {
       o.errorStack = e.stack 
     }
     return o
+  }
+
+  /**
+   * Find the path to the executable exiftool binary.
+   * @summary Find the path to the executable exiftool binary.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @return { Object } Returns an object literal with file system path to exiftool binary or error if not found.
+   */
+  async which() {
+    debug('which method entered')
+    let o = {value: null, error: null}
+    try {
+      let path = await cmd('which exiftool')
+      if ('\n' == path.stdout.slice(-1)) {
+        o.value = path.stdout.slice(0,-1) 
+      }
+    } catch (e) {
+      o.error = e 
+    }
+    return o
+  }
+
+  /**
+   * Set the full command string from the options.
+   * @summary Set the full command string from the options.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { undefined }
+   */
+  setCommand() {
+    debug('setCommand method entered')
+    this._command = `${this._executable} ${this.getOptions()} ${this._path}`
+  }
+
+  /**
+   * Compose the command line string of file type extentions for exiftool to exclude.
+   * @summary Compose the command line string of file type extensions for exiftool to exclude.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { undefined }
+   */
+  setExcludeTypes() {
+    this._extensionsToExclude.forEach( ext => { this._opts.excludeTypes += `--ext ${ext} ` } )
+  }
+
+  /**
+   * Get the instance property array of file type extentions for exiftool to exclude.
+   * @summary Get the instance property array of file type extensions for exiftool to exclude.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @returns { Array<string> } The array of file type extentions for exiftool to exclude.
+   */
+  getExtensionsToExclude() {
+    return this._extensionsToExclude
+  }
+
+  /**
+   * Set the array of file type extentions that exiftool should ignore while recursing through a directory.
+   * @summary Set the array of file type extenstions that exiftool should ignore while recursing through a directory.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @throws Will throw an error if extensionsArray is not an Array.
+   * @param { Array<string> } extentionsArray - An array of file type extentions.
+   * @return { undefined } 
+   */
+  setExtensionsToExclude( extentionsArray ) {
+    if (extentionsArray.constructor !== Array) {
+      throw new Error("Expecting an array of file extensions.")
+    } else {
+      this._extensionsToExclude = extentionsArray 
+      this._opts.excludeTypes = ''
+      this.setExcludeTypes()
+    }
+  }
+
+  /**
+   * Concatenate all the exiftool options together into a single string.
+   * @summary Concatenate all the exiftool options together into a single string.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { string } Commandline options to exiftool.
+   */
+  getOptions() {
+    debug('getOptions method entered')
+    if('' == this._opts.excludeTypes) {
+      this.setExcludeTypes()
+    }
+    return Object.values(this._opts).join(' ')
   }
 
   /**
@@ -496,27 +534,6 @@ export class Exiftool {
   }
 
   /**
-   * Find the path to the executable exiftool binary.
-   * @summary Find the path to the executable exiftool binary.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @async
-   * @return { Object } Returns an object literal with file system path to exiftool binary or error if not found.
-   */
-  async which() {
-    debug('which method entered')
-    let o = {value: null, error: null}
-    try {
-      let path = await cmd('which exiftool')
-      if ('\n' == path.stdout.slice(-1)) {
-        o.value = path.stdout.slice(0,-1) 
-      }
-    } catch (e) {
-      o.error = e 
-    }
-    return o
-  }
-
-  /**
    * Run the composed exiftool command to get the requested exif metadata.
    * @summary Get the exif metadata for one or more image files.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -586,7 +603,7 @@ export class Exiftool {
     }
     // exiftool -all= -o %f_copy%-.4nc.%e copper.jpg
     let exiftool = await this.which()
-    let file = `${this._cwd}/${this._path}`
+    let file = `${this._path}`
     let strip = `${exiftool.value} -config ${this._exiftool_config} -all= ${file}`
     o.command = strip
     try {

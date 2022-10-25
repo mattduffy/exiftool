@@ -108,7 +108,7 @@ let metadata = await exiftool.getMetadata()
 ]
 ```
 
-### The exiftool.config file
+### The exiftool.config File
 This file is not required to be present to process metadata by the original ```exiftool```, but it can help a lot with complex queries, so this Exiftool package uses it.  During the ```init()``` setup, a check is performed to see if the file is present in the root of the package directory.  If no file is found, a very basic file is created, populated with a simple shortcut called ```BasicShortcut```.  The path to this file can be overridden to use a different file.
 
 ```javascript

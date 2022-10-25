@@ -8,9 +8,13 @@ import Debug from 'debug'
 const debug = Debug('exiftool:metadata')
 debug(Exiftool)
 
+//debug(`__filename: ${__filename}`)
+//debug(`__dirname: ${__dirname}`)
+//exit(0)
+
 // Set the items to be used for all the tests here as constants.
-const testsDir = './__tests__'
-const imageDir = './images'
+const testsDir = __dirname
+const imageDir = `${__dirname}/images`
 const image1 = `${imageDir}/copper.jpg`
 const image2 = `${imageDir}/IMG_1820.jpg`
 const image3 = `${imageDir}/IMG_1820.heic`
@@ -89,7 +93,7 @@ describe("Exiftool metadata extractor", () => {
   })
 
   test("setPath: is the path to file or directory", async () => {
-    expect.assertions(4)
+    expect.assertions(5)
     let img = new Exiftool()
     // missing path value
     let result1 = await img.setPath()
@@ -98,16 +102,28 @@ describe("Exiftool metadata extractor", () => {
     let result2 = await img.setPath( image1 )
     expect(result2.value).toBeTruthy()
     expect(result2.error).toBeNull()
+
+    // test with a relative path to generate an error
+    try {
+      let img1 = new Exiftool()
+      let nonRootPath = 'images/copper.jpg'
+      img1 = await img1.init( nonRootPath ) 
+    } catch (e) {
+      expect(e).toBeInstanceOf(Error)
+    }
+
   })
 
   test("hasExiftoolConfigFile: check if exiftool.config file is present", async () => {
     expect.assertions(2)
     let img1, img2
     img1 = new Exiftool()
+    debug(`hasExiftoolConfigFile check - good check`)
     expect(await img1.hasExiftoolConfigFile()).toBeTruthy()
 
     img2 = new Exiftool()
     img2._exiftool_config = `${img2._cwd}/exiftool.config.missing`
+    debug(`hasExiftoolConfigFile check - bad check`)
     expect(await img2.hasExiftoolConfigFile()).toBeFalsy()
   })
 
