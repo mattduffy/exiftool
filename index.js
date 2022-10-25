@@ -15,40 +15,6 @@ import Debug from 'debug'
 const debug = Debug('exiftool:metadata')
 
 /**
- * @todo [x] constructor: create a class constructor method to initialize exiftool
- * @todo [x] init: create an options object to set exiftool output behavior
- * @todo [x] - add a jest test case for instance creation
- * @todo [x] which: create a class method to verify exiftool is avaiable
- * @todo [x] - add a jest test case to verify exiftool is available
- * @todo [x] get/setExtensionsToExclude: create class methods to get/set extention type array
- * @todo [x] - add a jest test case to verify get/set methods
- * @todo [x] getPath: create a class method to return the configured path to image / image directory
- * @todo [x] - add a jest test case to get the value of instance _path property
- * @todo [x] hasExiftoolConfigFile: create a class method to check if exiftool.config file exists
- * @todo [x] - add a jest test case to find present/missing config file
- * @todo [x] createExiftoolConfigFile: create a class method to create exiftool.config file if missing
- * @todo [x] - add a jest test case to verify creation of new config file
- * @todo [x] - add a jest teardown to remove newly created copies of the exiftool.config file
- * @todo [x] get/setConfigPath: create a class method to point to a different exiftool.config file
- * @todo [x] - add a jest test case to verify changing exiftool.config file
- * @todo [x] hasShortcut: create a class method to check if a shortcut exists
- * @todo [x] - add a jest test case to check if a shortcut exists
- * @todo [x] addShortcut: create a class method to add a shortcut
- * @todo [x] - add a jest test case to add a shortcut
- * @todo [x] removeShortcut: create a class method to remove a shortcut
- * @todo [x] - add a jest test case to remove a shortcut
- * @todo [x] getMetadata: create a class method to extract metadata using custom shortcut
- * @todo [x] - add a jest test case to extract metadata using a custom shortcut
- * @todo [x] getMetadata: create a class method to extract all metadata
- * @todo [x] - add a jest test case to extract all metadata
- * @todo [x] getMetadata: create a class method to extract arbitrary metadata
- * @todo [x] - add a jest test case to extract arbitrary metadata
- * @todo [x] - add a jest test case to prevent passing -all= tag to getMetadata method
- * @todo [x] stripMetadata: create a class method to strip all metadata from an image
- * @todo [x] - add a jest test case to strip all metadata from an image
- */
-
-/**
  * A class wrapping the exiftool metadata tool.
  * @summary A class wrapping the exiftool image metadata extraction tool.
  * @class Exiftool
