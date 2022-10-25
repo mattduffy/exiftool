@@ -1,34 +1,34 @@
 
-[x] constructor: create a class constructor method to initialize exiftool
-[x] init: create an options object to set exiftool output behavior
-[x] - add a jest test case for instance creation
-[x] which: create a class method to verify exiftool is avaiable
-[x] - add a jest test case to verify exiftool is available
-[x] get/setExtensionsToExclude: create class methods to get/set extention type array
-[x] - add a jest test case to verify get/set methods
-[x] getPath: create a class method to return the configured path to image / image directory
-[x] - add a jest test case to get the value of instance \_path property
-[x] hasExiftoolConfigFile: create a class method to check if exiftool.config file exists
-[x] - add a jest test case to find present/missing config file
-[x] createExiftoolConfigFile: create a class method to create exiftool.config file if missing
-[x] - add a jest test case to verify creation of new config file
-[x] - add a jest teardown to remove newly created copies of the exiftool.config file
-[x] get/setConfigPath: create a class method to point to a different exiftool.config file
-[x] - add a jest test case to verify changing exiftool.config file
-[x] hasShortcut: create a class method to check if a shortcut exists
-[x] - add a jest test case to check if a shortcut exists
-[x] addShortcut: create a class method to add a shortcut
-[x] - add a jest test case to add a shortcut
-[x] removeShortcut: create a class method to remove a shortcut
-[x] - add a jest test case to remove a shortcut
-[x] getMetadata: create a class method to extract metadata using custom shortcut
-[x] - add a jest test case to extract metadata using a custom shortcut
-[x] getMetadata: create a class method to extract all metadata
-[x] - add a jest test case to extract all metadata
-[x] getMetadata: create a class method to extract arbitrary metadata
-[x] - add a jest test case to extract arbitrary metadata
-[x] - add a jest test case to prevent passing -all= tag to getMetadata method
-[x] stripMetadata: create a class method to strip all metadata from an image
-[x] - add a jest test case to strip all metadata from an image
+- [x] constructor: create a class constructor method to initialize exiftool
+- [x] init: create an options object to set exiftool output behavior
+- [x] - add a jest test case for instance creation
+- [x] which: create a class method to verify exiftool is avaiable
+- [x] - add a jest test case to verify exiftool is available
+- [x] get/setExtensionsToExclude: create class methods to get/set extention type array
+- [x] - add a jest test case to verify get/set methods
+- [x] getPath: create a class method to return the configured path to image / image directory
+- [x] - add a jest test case to get the value of instance \_path property
+- [x] hasExiftoolConfigFile: create a class method to check if exiftool.config file exists
+- [x] - add a jest test case to find present/missing config file
+- [x] createExiftoolConfigFile: create a class method to create exiftool.config file if missing
+- [x] - add a jest test case to verify creation of new config file
+- [x] - add a jest teardown to remove newly created copies of the exiftool.config file
+- [x] get/setConfigPath: create a class method to point to a different exiftool.config file
+- [x] - add a jest test case to verify changing exiftool.config file
+- [x] hasShortcut: create a class method to check if a shortcut exists
+- [x] - add a jest test case to check if a shortcut exists
+- [x] addShortcut: create a class method to add a shortcut
+- [x] - add a jest test case to add a shortcut
+- [x] removeShortcut: create a class method to remove a shortcut
+- [x] - add a jest test case to remove a shortcut
+- [x] getMetadata: create a class method to extract metadata using custom shortcut
+- [x] - add a jest test case to extract metadata using a custom shortcut
+- [x] getMetadata: create a class method to extract all metadata
+- [x] - add a jest test case to extract all metadata
+- [x] getMetadata: create a class method to extract arbitrary metadata
+- [x] - add a jest test case to extract arbitrary metadata
+- [x] - add a jest test case to prevent passing -all= tag to getMetadata method
+- [x] stripMetadata: create a class method to strip all metadata from an image
+- [x] - add a jest test case to strip all metadata from an image
 
 
