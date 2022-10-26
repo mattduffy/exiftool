@@ -11,6 +11,10 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    "semi": ["error": "off"]
+    semi: ['error', 'never'],
+    'no-console': 'off',
+    'no-underscore-dangle': 'off',
+    'import/prefer-default-export': 'off',
+    'max-len': 'off',
   },
-};
+}

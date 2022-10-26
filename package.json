@@ -24,10 +24,12 @@
   "homepage": "https://github.com/mattduffy/exiftool#readme",
   "devDependencies": {
     "@jest/globals": "29.2.0",
-    "debug": "^4.3.4",
     "eslint": "8.26.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.26.0",
     "jest": "29.1.2"
+  },
+  "dependencies": {
+    "debug": "4.3.4"
   }
 }

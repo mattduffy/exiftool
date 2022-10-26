@@ -5,13 +5,14 @@
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 import { stat } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import { exec } from 'node:child_process'
-const cmd = promisify(exec)
 import Debug from 'debug'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const cmd = promisify(exec)
 const debug = Debug('exiftool:metadata')
 
 /**
@@ -23,12 +24,12 @@ const debug = Debug('exiftool:metadata')
 export class Exiftool {
   /**
    * Create an instance of the exiftool wrapper.
-   * @param { string } path - String value of file path to an image file or directory of images.
+   * @param { string } imagePath - String value of file path to an image file or directory of images.
    */
-  constructor( path ) {
+  constructor(imagePath) {
     debug('constructor method entered')
-    this._imgDir = path || null
-    this._path = path || null
+    this._imgDir = imagePath || null
+    this._path = imagePath || null
     this._isDirectory = null
     this._fileStats = null
     this._cwd = __dirname
@@ -36,13 +37,13 @@ export class Exiftool {
     this._extensionsToExclude = ['TXT', 'JS', 'JSON', 'MJS', 'CJS', 'MD', 'HTML', 'CSS']
     this._opts = {}
     this._opts.exiftool_config = `-config ${this._exiftool_config}`
-    this._opts.outputFormat = `-json`
-    this._opts.gpsFormat = `-c "%.6f"`
+    this._opts.outputFormat = '-json'
+    this._opts.gpsFormat = '-c "%.6f"'
     this._opts.tagList = null
-    this._opts.shortcut = `-BasicShortcut`
-    this._opts.includeTagFamily = `-G`
-    this._opts.compactFormat = `-s3`
-    this._opts.quiet = `-q`
+    this._opts.shortcut = '-BasicShortcut'
+    this._opts.includeTagFamily = '-G'
+    this._opts.compactFormat = '-s3'
+    this._opts.quiet = '-q'
     this._opts.excludeTypes = ''
     this._command = null
   }
@@ -52,45 +53,44 @@ export class Exiftool {
    * @summary Initializes some asynchronus class properties not done in the constructor.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param { string } path - A file system path to set for exiftool to process.
+   * @param { string } imagePath  - A file system path to set for exiftool to process.
    * @return { (Exiftool|boolean) } Returns fully initialized instance or false.
    */
-  async init( path ) {
+  async init(imagePath) {
     debug('init method entered')
-    if (('undefined' == typeof path) && (null == this._path)) {
+    // if ((typeof imagePath === 'undefined') && (this._path === null)) {
+    if ((imagePath === '' || typeof imagePath === 'undefined') && this._path === null) {
       debug('Param: path - was undefined.')
       debug(`Instance property: path - ${this._path}`)
       return false
-    } else if (path) {
-      try {
-        await this.setPath(path)
-      } catch (e) {
-        debug(e)
-        //return false
-        throw e
-      }
-    } 
+    }
+    try {
+      await this.setPath(imagePath)
+    } catch (e) {
+      debug(e)
+      throw e
+    }
     try {
       debug('checking if config file exists.')
       if (await this.hasExiftoolConfigFile()) {
         debug('exiftool.config file exists')
       } else {
         debug('missing exiftool.config file')
-        debug('attempting to create empty exiftool.config file') 
-        let result = this.createExiftoolConfigFile()
+        debug('attempting to create empty exiftool.config file')
+        const result = this.createExiftoolConfigFile()
         if (!result.value && result.error) {
           debug('failed to create new exiftool.config file')
           throw new Error(result.error)
         }
         debug('new exiftool.config file created')
-      }  
+      }
     } catch (e) {
       debug('could not create exiftool.config file')
       debug(e)
     }
     try {
-      let result = await this.which()
-      this._executable = result.value 
+      const result = await this.which()
+      this._executable = result.value
       debug('setting the command string')
       this.setCommand()
     } catch (e) {
@@ -105,26 +105,26 @@ export class Exiftool {
    * @summary Set the path of image file or directory of images to process with exiftool.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param { string } path - A file system path to set for exiftool to process.
+   * @param { string } imagePath - A file system path to set for exiftool to process.
    * @return { Object } Returns an object literal with success or error messages.
    */
-  async setPath( path ) {
+  async setPath(imagePath) {
     debug('setPath method entered')
-    let o = {value: null, error: null}
-    if ('undefined' == path || null == path) {
-      o.error = "A path to image or directory is required."
+    const o = { value: null, error: null }
+    if (typeof imagePath === 'undefined' || imagePath === null) {
+      o.error = 'A path to image or directory is required.'
       return o
     }
-    if (!/^\//.test(path)) {
+    if (!/^\//.test(imagePath)) {
       // the path parameter must be a fully qualified file path, starting with /
-        throw new Error("The file system path to image must be a fully qualified path, starting from root /.")
+      throw new Error('The file system path to image must be a fully qualified path, starting from root /.')
     }
     try {
-      this._path = path
-      this._fileStats = await stat(path)
+      this._path = imagePath
+      this._fileStats = await stat(imagePath)
       this._isDirectory = this._fileStats.isDirectory()
       if (this._fileStats.isDirectory()) {
-        this._imgDir = path
+        this._imgDir = imagePath
       }
       this.setCommand()
       o.value = true
@@ -146,9 +146,9 @@ export class Exiftool {
    */
   async getPath() {
     debug('getPath method entered')
-    let o = {value: null, error: null}
-    if (null == this._path || 'undefined' == typeof this._path || '' == this._path) {
-      o.error = "Path to an image file or image directory is not set."
+    const o = { value: null, error: null }
+    if (this._path === null || typeof this._path === 'undefined' || this._path === '') {
+      o.error = 'Path to an image file or image directory is not set.'
     } else {
       o.value = true
       o.file = (this._isDirectory) ? null : path.basename(this._path)
@@ -168,10 +168,10 @@ export class Exiftool {
     debug('hasExiftoolConfigFile method entered')
     debug('>')
     let exists = false
-    let file = this._exiftool_config
+    const file = this._exiftool_config
     try {
       debug('>>')
-      let stats = await stat(file)
+      const stats = await stat(file)
       debug('>>>')
       debug(stats)
       exists = true
@@ -193,16 +193,16 @@ export class Exiftool {
    */
   async createExiftoolConfigFile() {
     debug('createExiftoolConfigFile method entered')
-    let o = {value: null, error: null}
-    let stub = `%Image::ExifTool::UserDefined::Shortcuts = (
+    const o = { value: null, error: null }
+    const stub = `%Image::ExifTool::UserDefined::Shortcuts = (
     BasicShortcut => ['file:FileName','exif:ImageDescription','iptc:ObjectName','iptc:Caption-Abstract','iptc:Keywords','Composite:GPSPosition'],
 );`
-    //let fileName = `${this._cwd}/exiftool.config`
-    let fileName = this._exiftool_config
-    let echo = `echo "${stub}" > ${fileName}`
+    // let fileName = `${this._cwd}/exiftool.config`
+    const fileName = this._exiftool_config
+    const echo = `echo "${stub}" > ${fileName}`
     try {
       debug('attemtping to create exiftool.config file')
-      let result = cmd(echo)
+      const result = cmd(echo)
       debug(result.stdout)
       o.value = true
     } catch (e) {
@@ -210,7 +210,7 @@ export class Exiftool {
       debug(e)
       o.error = e.message
       o.errorCode = e.code
-      o.errorStack = e.stack 
+      o.errorStack = e.stack
     }
     return o
   }
@@ -224,14 +224,18 @@ export class Exiftool {
    */
   async which() {
     debug('which method entered')
-    let o = {value: null, error: null}
-    try {
-      let path = await cmd('which exiftool')
-      if ('\n' == path.stdout.slice(-1)) {
-        o.value = path.stdout.slice(0,-1) 
+    const o = { value: null, error: null }
+    if (this._executable !== '' && typeof this._executable !== 'undefined') {
+      o.value = this._exectuable
+    } else {
+      try {
+        const out = await cmd('which exiftool')
+        if (out.stdout.slice(-1) === '\n') {
+          o.value = out.stdout.slice(0, -1)
+        }
+      } catch (e) {
+        o.error = e
       }
-    } catch (e) {
-      o.error = e 
     }
     return o
   }
@@ -254,7 +258,7 @@ export class Exiftool {
    * @return { undefined }
    */
   setExcludeTypes() {
-    this._extensionsToExclude.forEach( ext => { this._opts.excludeTypes += `--ext ${ext} ` } )
+    this._extensionsToExclude.forEach((ext) => { this._opts.excludeTypes += `--ext ${ext} ` })
   }
 
   /**
@@ -273,13 +277,13 @@ export class Exiftool {
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @throws Will throw an error if extensionsArray is not an Array.
    * @param { Array<string> } extentionsArray - An array of file type extentions.
-   * @return { undefined } 
+   * @return { undefined }
    */
-  setExtensionsToExclude( extentionsArray ) {
+  setExtensionsToExclude(extentionsArray) {
     if (extentionsArray.constructor !== Array) {
-      throw new Error("Expecting an array of file extensions.")
+      throw new Error('Expecting an array of file extensions.')
     } else {
-      this._extensionsToExclude = extentionsArray 
+      this._extensionsToExclude = extentionsArray
       this._opts.excludeTypes = ''
       this.setExcludeTypes()
     }
@@ -293,7 +297,7 @@ export class Exiftool {
    */
   getOptions() {
     debug('getOptions method entered')
-    if('' == this._opts.excludeTypes) {
+    if (this._opts.excludeTypes === '') {
       this.setExcludeTypes()
     }
     return Object.values(this._opts).join(' ')
@@ -303,18 +307,19 @@ export class Exiftool {
    * Set the file system path to a different exiftool.config to be used.
    * @summary Set the file system path to a different exiftool.config to be used.
    * @author Matthew Duffy <mattduffy@gmail.com>
-   * @async 
+   * @async
    * @param { string } newConfigPath - A string containing the file system path to a valid exiftool.config file.
    * @return { Object } Returns an object literal with success or error messages.
    */
-  async setConfigPath( newConfigPath ) {
+  async setConfigPath(newConfigPath) {
     debug('setConfigPath method entered')
-    let o = {value: null, error: null}
-    if ('' == newConfigPath || null == newConfigPath) {
-      o.error = "A valid file system path to an exiftool.config file is required."
+    const o = { value: null, error: null }
+    if (newConfigPath === '' || newConfigPath === null) {
+      o.error = 'A valid file system path to an exiftool.config file is required.'
     } else {
       try {
-        let stats = await stat(newConfigPath)
+        // const stats = await stat(newConfigPath)
+        await stat(newConfigPath)
         o.value = true
         this._exiftool_config = newConfigPath
         this._opts.exiftool_config = `-config ${this._exiftool_config}`
@@ -336,9 +341,9 @@ export class Exiftool {
    */
   getConfigPath() {
     debug('getConfigPath method entered')
-    let o = {value: null, error: null}
-    if ('' == this._exiftool_config || null == this._exiftool_config || 'undefined' == typeof this._exiftool_config) {
-      o.error = "No path set for the exiftool.config file."
+    const o = { value: null, error: null }
+    if (this._exiftool_config === '' || this._exiftool_config === null || typeof this._exiftool_config === 'undefined') {
+      o.error = 'No path set for the exiftool.config file.'
     } else {
       o.value = this._exiftool_config
     }
@@ -352,16 +357,16 @@ export class Exiftool {
    * @param { string } shortcut - The name of a shortcut to check if it exists in the exiftool.config.
    * @return { boolean } Returns true if the shortcut exists in the exiftool.config, false if not.
    */
-  async hasShortcut( shortcut ) {
+  async hasShortcut(shortcut) {
     debug('hasShortcut method entered')
     let exists
-    if ('undefined' == shortcut || null == shortcut) {
+    if (shortcut === 'undefined' || shortcut === null) {
       exists = false
     } else {
       try {
-        let output = await cmd(`grep ${shortcut} ${this._exiftool_config}`)
-        let stdout = output.stdout.trim().match(shortcut)
-        if (shortcut == stdout[0]) {
+        const output = await cmd(`grep ${shortcut} ${this._exiftool_config}`)
+        const stdout = output.stdout.trim().match(shortcut)
+        if (shortcut === stdout[0]) {
           exists = true
         } else {
           exists = false
@@ -382,19 +387,18 @@ export class Exiftool {
    * @param { string } newShortcut - The string of text representing the new shortcut to add to exiftool.config file.
    * @return { Object } Returns an object literal with success or error messages.
    */
-  async addShortcut( newShortcut ) {
+  async addShortcut(newShortcut) {
     debug('addShortcut method entered')
-    let o = {value: null, error: null}
-    if ('undefined' == newShortcut || '' == newShortcut) {
-      o.error = "Shortcut name must be provided as a string."
+    const o = { value: null, error: null }
+    if (newShortcut === 'undefined' || newShortcut === '') {
+      o.error = 'Shortcut name must be provided as a string.'
     } else {
       try {
-        let sedCommand = `sed -i.bk "2i\\    ${newShortcut}," ${this._exiftool_config}`
+        const sedCommand = `sed -i.bk "2i\\    ${newShortcut}," ${this._exiftool_config}`
         debug(`sed command: ${sedCommand}`)
-        let output = await cmd( sedCommand )
-        let stdout = output.stdout
+        const output = await cmd(sedCommand)
         debug(output)
-        if ('' == output.stderr) {
+        if (output.stderr === '') {
           o.value = true
           o.command = sedCommand
         } else {
@@ -417,20 +421,19 @@ export class Exiftool {
    * @param { string } shortcut - A string containing the name of the shortcut to remove.
    * @return { Object } Returns an object literal with success or error messages.
    */
-  async removeShortcut( shortcut ) {
+  async removeShortcut(shortcut) {
     debug('removeShortcut method entered')
-    let o = {value: null, error: null}
-    if ('undefined' == shortcut || '' == shortcut) {
-      o.error = "Shortcut name must be provided as a string."
+    const o = { value: null, error: null }
+    if (shortcut === 'undefined' || shortcut === '') {
+      o.error = 'Shortcut name must be provided as a string.'
     } else {
       try {
-        let sedCommand = `sed -i.bk "/${shortcut}/d" ${this._exiftool_config}`
+        const sedCommand = `sed -i.bk "/${shortcut}/d" ${this._exiftool_config}`
         o.command = sedCommand
         debug(`sed command: ${sedCommand}`)
-        let output = await cmd( sedCommand )
-        let stdout = output.stdout
+        const output = await cmd(sedCommand)
         debug(output)
-        if ('' == output.stderr) {
+        if (output.stderr === '') {
           o.value = true
         } else {
           o.value = false
@@ -451,11 +454,11 @@ export class Exiftool {
    * @param { string } shortcut - The name of a new exiftool shortcut to use.
    * @return { Object } Returns an object literal with success or error messages.
    */
-  setShortcut( shortcut ) {
+  setShortcut(shortcut) {
     debug('setShortcut method entered')
-    let o = {value: null, error: null}
-    if ('undefined' == shortcut || null == shortcut) {
-      o.error = "Shortcut must be a string value."
+    const o = { value: null, error: null }
+    if (shortcut === 'undefined' || shortcut === null) {
+      o.error = 'Shortcut must be a string value.'
     } else {
       this._opts.shortcut = `-${shortcut}`
       this.setCommand()
@@ -471,12 +474,12 @@ export class Exiftool {
    * @param { (string|Array) } tagsToExtract - A string or an array of metadata tags to be passed to exiftool.
    * @return { Object } Returns an object literal with success or error messages.
    */
-  setMetadataTags( tagsToExtract ) {
+  setMetadataTags(tagsToExtract) {
     debug('setMetadataTags method entered')
-    let tags = tagsToExtract
+    const tags = tagsToExtract
     debug(`>> ${tags}`)
-    let o = {value: null, error: null}
-    if ('undefined' == tags || '' == tags || null == tags) {
+    const o = { value: null, error: null }
+    if (tags === 'undefined' || tags === '' || tags === null) {
       o.error = 'One or more metadata tags are required'
     } else {
       if (Array === tags.constructor) {
@@ -486,7 +489,7 @@ export class Exiftool {
       }
       if (String === tags.constructor) {
         debug('string of tags')
-        if (null == tags.match(/^-/)) {
+        if (tags.match(/^-/) === null) {
           this._opts.tagList = `-${tags}`
         }
         this._opts.tagList = tags
@@ -511,20 +514,20 @@ export class Exiftool {
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
    * @return { (Object|Error) } JSON object literal of metadata or throws an Error if failed.
    */
-  async getMetadata( fileOrDir=null, shortcut=null, tagsToExtract=null) {
+  async getMetadata(fileOrDir = null, shortcut = null, tagsToExtract = null) {
     debug('getMetadata method entered')
-    if (null != fileOrDir && '' != fileOrDir) {
+    if (fileOrDir !== null && fileOrDir !== '') {
       this.setPath(fileOrDir)
     }
-    if (null != shortcut && '' != shortcut) {
+    if (shortcut !== null && shortcut !== '') {
       this.setShortcut(shortcut)
     }
-    if (null != tagsToExtract && '' != tagsToExtract) {
+    if (tagsToExtract !== null && tagsToExtract !== '') {
       if (tagsToExtract.includes('-all= ')) {
         debug("Can't include metadata stripping -all= tag in get metadata request.")
         throw new Error("Can't include metadata stripping -all= tag in get metadata reqeust.")
       }
-      let options = this.setMetadataTags(tagsToExtract)
+      const options = this.setMetadataTags(tagsToExtract)
       debug(options)
       debug(this._opts)
       if (options.error) {
@@ -534,11 +537,11 @@ export class Exiftool {
     debug(this._command)
     try {
       let metadata = await cmd(this._command)
-      if ('' != metadata.stderr) {
+      if (metadata.stderr !== '') {
         throw new Error(metadata.stderr)
       }
       metadata = JSON.parse(metadata.stdout)
-      metadata.push( {exiftool_command: this._command} )
+      metadata.push({ exiftool_command: this._command })
       debug(metadata)
       return metadata
     } catch (e) {
@@ -560,22 +563,21 @@ export class Exiftool {
    */
   async stripMetadata() {
     debug('stripMetadata method entered')
-    let o = {value: null, error: null}
-    if (null == this._path) {
+    const o = { value: null, error: null }
+    if (this._path === null) {
       throw new Error('No image was specified to strip all metadata from.')
     }
     if (this._isDirectory) {
       throw new Error('A directory was given.  Use a path to a specific file instead.')
     }
     // exiftool -all= -o %f_copy%-.4nc.%e copper.jpg
-    let exiftool = await this.which()
-    let file = `${this._path}`
-    let strip = `${exiftool.value} -config ${this._exiftool_config} -all= ${file}`
+    const file = `${this._path}`
+    const strip = `${this._executable} -config ${this._exiftool_config} -all= ${file}`
     o.command = strip
     try {
-      let result = await cmd( strip ) 
+      const result = await cmd(strip)
       debug(result)
-      if (null == result.stdout.trim().match(/files updated/)) {
+      if (result.stdout.trim().match(/files updated/) === null) {
         throw new Error(`Failed to strip metadata from image - ${file}.`)
       }
       o.value = true
@@ -587,7 +589,4 @@ export class Exiftool {
     }
     return o
   }
-
-
 }
-
