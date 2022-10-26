@@ -8,10 +8,6 @@ import Debug from 'debug'
 const debug = Debug('exiftool:metadata')
 debug(Exiftool)
 
-//debug(`__filename: ${__filename}`)
-//debug(`__dirname: ${__dirname}`)
-//exit(0)
-
 // Set the items to be used for all the tests here as constants.
 const testsDir = __dirname
 const imageDir = `${__dirname}/images`
