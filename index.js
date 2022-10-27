@@ -552,6 +552,98 @@ export class Exiftool {
   }
 
   /**
+   * Write a new metadata value to the designated tags.
+   * @summary Write a new metadata value to the designated tags.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @param { string|Array<string> } metadataToWrite - A string value with tag name and new value or an array of tag strings.
+   * @return { Object|Error } Returns an object literal with success or error messages, or throws an exception if no image given.
+   */
+  async writeMetadataToTag(metadataToWrite) {
+    debug('writeMetadataToTag method entered')
+    const o = { value: null, error: null }
+    let tagString = ''
+    if (this._path === null) {
+      throw new Error('No image was specified to write new metadata content to.')
+    }
+    if (this._isDirectory) {
+      throw new Error('A directory was given.  Use a path to a specific file instead.')
+    }
+    switch (metadataToWrite.constructor) {
+      case Array:
+        tagString = metadataToWrite.join(' ')
+        break
+      case String:
+        tagString = metadataToWrite
+        break
+      default:
+        throw new Error(`Expected a string or an array of strings.  Received: ${metadataToWrite.constructor}`)
+    }
+    try {
+      debug(`tagString: ${tagString}`)
+      const file = `${this._path}`
+      const write = `${this._executable} ${tagString} ${file}`
+      o.command = write
+      const result = await cmd(write)
+      if (result.stdout.trim() === null) {
+        throw new Error(`Failed to write new metadata to image - ${file}`)
+      }
+      o.value = true
+      o.stdout = result.stdout.trim()
+    } catch (e) {
+      debug(e)
+      o.error = e
+    }
+    return o
+  }
+
+  /**
+   * Clear the metadata from a tag, but keep the tag rather than stripping it from the image file.
+   * @summary Clear the metadata from a tag, but keep the tag rather than stripping it from the image file.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @param { string|Array<string> } tagsToClear - A string value with tag name or an array of tag names.
+   * @return { Object|Error } Returns an object literal with success or error messages, or throws an exception if no image given.
+   */
+  async clearMetadataFromTag(tagsToClear) {
+    debug('clearMetadataFromTag method entered')
+    const o = { value: null, errors: null }
+    let tagString = ''
+    if (this._path === null) {
+      throw new Error('No image was specified to clear metadata from tags.')
+    }
+    if (this._isDirectory) {
+      throw new Error('No image was specified to write new metadata content to.')
+    }
+    switch (tagsToClear.constructor) {
+      case Array:
+        tagString = tagsToClear.join(' ')
+        break
+      case String:
+        tagString = tagsToClear
+        break
+      default:
+        throw new Error(`Expected a string or an arrray of strings.  Recieved ${tagsToClear.constructor}`)
+    }
+    try {
+      debug(`tagString: ${tagString}`)
+      const file = `${this._path}`
+      const clear = `${this._executable} ${tagString} ${file}`
+      o.command = clear
+      const result = await cmd(clear)
+      if (result.stdout.trim() === null) {
+        throw new Error(`Failed to clear the tags: ${tagString}, from ${file}`)
+      }
+      o.value = true
+      o.stdout = result.stdout.trim()
+    } catch (e) {
+      debug(e)
+      o.error = e
+    }
+    return o
+  }
+
+  /**
    * Run the composed exiftool command to strip all the metadata from a file, keeping a backup copy of the original file.
    * @summary Run the composed exiftool command to strip all the metadata from a file.
    * @author Matthew Duffy <mattduffy@gmail.com>

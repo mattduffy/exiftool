@@ -30,5 +30,10 @@
 - [x] - add a jest test case to prevent passing -all= tag to getMetadata method
 - [x] stripMetadata: create a class method to strip all metadata from an image
 - [x] - add a jest test case to strip all metadata from an image
-
+- [x] writeToTag: create a class method to write metadata to an metadata tag
+- [x] - add a jest test case to write metadata to a designated metadata tag
+- [x] clearTag: create a class method to clear the value of a designated tag
+- [x] - add a jest test case to clear metadata from a designated tag
+- [ ] raw: create a class method to send a fully composed metadata query to exiftool, ignoring defaults
+- [ ] - add a jest test case to send a fully composed metadata query to exiftool
 

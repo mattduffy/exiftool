@@ -223,6 +223,7 @@ describe('Exiftool metadata extractor', () => {
   })
 
   test('stripMetadata: strip all the metadata out of a file and keep a backup of the original file', async () => {
+    // test stripping all metadata from an image file
     expect.assertions(2)
     let img1 = new Exiftool()
     // init with strip.jpg image 4
@@ -230,5 +231,39 @@ describe('Exiftool metadata extractor', () => {
     const result = await img1.stripMetadata()
     expect(result.value).toBeTruthy()
     expect(result.original).toMatch(/_original/)
+  })
+
+  test('writeMetadataToTag: write new metadata to one of more designate tags', async () => {
+    // test writing new metadata to a designated tag
+    expect.assertions(3)
+    let img1 = new Exiftool()
+    // init with copper.jpg image1
+    img1 = await img1.init(image1)
+    const data1 = '-IPTC:Headline="Wow, Great Photo!" -IPTC:Keywords+=TEST'
+    const result1 = await img1.writeMetadataToTag(data1)
+    expect(result1).toHaveProperty('value', true)
+    expect(result1.stdout.trim()).toMatch(/1 image files updated/)
+
+    // test writing new metadata to more than one designated tag
+    let img2 = new Exiftool()
+    // init with strip.jpg image 4
+    img2 = await img2.init(image4)
+    try {
+      await img2.writeMetadataToTag()
+    } catch (e) {
+      expect(e).toBeInstanceOf(Error)
+    }
+  })
+
+  test('clearMetadataFromTag: clear metadata from one or more designated tags', async () => {
+    // test clearing metadata values from a designated tag
+    let img1 = new Exiftool()
+    // init with strip.jpg image4
+    img1 = await img1.init(image4)
+    const data1 = '-IPTC:Headline="Wow, Great Photo!" -IPTC:Contact=TEST'
+    await img1.writeMetadataToTag(data1)
+    const tag = ['-IPTC:Headline^=', '-IPTC:Contact^=']
+    const result1 = await img1.clearMetadataFromTag(tag)
+    expect(result1.stdout.trim()).toMatch(/1 image files updated/)
   })
 })
