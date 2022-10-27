@@ -169,6 +169,53 @@ if (await exiftool.hasShortcut( 'MyCoolShortcut' )) {
 
 Exiftool creates a backup of the ```exiftool.config``` file each time it is modified by the ```addShortcut()``` or ```removeShortcut()``` methods.
 
+### Writing Metadata to a Tag
+```exiftool``` makes it easy to write new metadata values to any of the hundreds of tags it supports by specifying the tag name and the new value to write.  Any number of tags can be written to in one command.  A full discussion is beyond the scope of this documentation, but information on the types of tag values (strings, lists, numbers, binary data, etc.) can be found [here](https://exiftool.org/TagNames/index.html).  Exiftool provides the ```writeMetadataToTag()``` method to support this functionality.  This method works on a single image file at a time.  It takes either a string, or an array of strings, formated according to these [rules](https://exiftool.org/exiftool_pod.html#WRITING-EXAMPLES).
+
+The general format to write a new value to a tag is: ```-TAG=VALUE``` where TAG is the tag name, ```=``` means write the new ```VALUE```.  For tags that store list values, you can add an item to the list ```-TAG+=VALUE```.  The ```+=``` is like ```Array.push()```.  Likewise, ```-TAG-=VALUE``` is like ```Array.pop()```.
+
+This is an **Async/Await** method.
+
+```javascript
+let exiftool = new Exiftool()
+exiftool = await exiftool.init( '/path/to/image.jpg' )
+let tagToWrite = '-IPTC:Headline="Wow, Great Photo!"'
+let result1 = await exiftool.writeMetadataToTag( tagToWrite )
+console.log(result1)
+//{
+//   value: true,
+//   error: null,
+//   command: '/usr/local/bin/exiftool -IPTC:Headline="Wow, Great Photo!" /path/to/image.jpg',
+//   stdout: '1 image files updated'
+//}
+```
+Multiple tags can be written to at once by passing an array to ```writeMetadataToTag()```.  
+
+```javascript
+let exiftool = new Exiftool()
+exiftool = await exiftool.init( '/path/to/image.jpg' )
+let tagArray = ['-IPTC:Contact="Photo McCameraguy"', '-IPTC:Keywords+=News', '-IPTC:Keywords+=Action']
+let result2 = await exiftool.writeMetadataToTag( tagArray )
+console.log(result2)
+//{
+//   value: true,
+//   error: null,
+//   command: '/usr/local/bin/exiftool -IPTC:Contact="Photo McCameraguy" -IPTC:Keywords+=News -IPTC:Keywords+=Action /path/to/image.jpg',
+//   stdout: '1 image files updated'
+//}
+```
+
+### Clearing Metadata From a Tag
+Tags can be cleared of their metadata value.  This is essentially the same as writing an empty string to the tag.  This is slighlty different that stripping the tag entirely from the image.  Exiftool provides the ```clearMetadataFromTag()``` method to clear tag values.  This leaves the empty tag in the image file so it can be written to again if necessary.  Like the ```writeMetadataToTag()``` method, this one also takes either a string or an array of strings as a parameter.  This is an **Async/Await** method.
+
+```javascript
+let exiftool = new Exiftool()
+exiftool = await exiftool.init('/path/to/image.jpg')
+let tagToClear = '-IPTC:Contact^='
+let result = await exiftool.clearMetadataFromTag(tagToClear)
+console.log(result)
+```
+
 ### Stripping Metadata From an Image
 It is possible to strip all of the existing metadata from an image with this Exiftool package.  The default behavior of the original ```exiftool``` utility, when writing metadata to an image is to make a backup copy of the original image file.  The new file will keep the original file name, while the backup will have **_original** appended to the name.  Exiftool maintains this default behavior.
 
