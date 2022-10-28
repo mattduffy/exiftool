@@ -34,6 +34,6 @@
 - [x] - add a jest test case to write metadata to a designated metadata tag
 - [x] clearTag: create a class method to clear the value of a designated tag
 - [x] - add a jest test case to clear metadata from a designated tag
-- [ ] raw: create a class method to send a fully composed metadata query to exiftool, ignoring defaults
-- [ ] - add a jest test case to send a fully composed metadata query to exiftool
+- [x] raw: create a class method to send a fully composed metadata query to exiftool, ignoring defaults
+- [x] - add a jest test case to send a fully composed metadata query to exiftool
 

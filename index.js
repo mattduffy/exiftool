@@ -35,6 +35,7 @@ export class Exiftool {
     this._cwd = __dirname
     this._exiftool_config = `${this._cwd}/exiftool.config`
     this._extensionsToExclude = ['TXT', 'JS', 'JSON', 'MJS', 'CJS', 'MD', 'HTML', 'CSS']
+    this._executable = null
     this._opts = {}
     this._opts.exiftool_config = `-config ${this._exiftool_config}`
     this._opts.outputFormat = '-json'
@@ -58,7 +59,6 @@ export class Exiftool {
    */
   async init(imagePath) {
     debug('init method entered')
-    // if ((typeof imagePath === 'undefined') && (this._path === null)) {
     if ((imagePath === '' || typeof imagePath === 'undefined') && this._path === null) {
       debug('Param: path - was undefined.')
       debug(`Instance property: path - ${this._path}`)
@@ -225,7 +225,7 @@ export class Exiftool {
   async which() {
     debug('which method entered')
     const o = { value: null, error: null }
-    if (this._executable !== '' && typeof this._executable !== 'undefined') {
+    if (this._executable !== '' && typeof this._executable !== 'undefined' && this._executable !== null) {
       o.value = this._exectuable
     } else {
       try {
@@ -508,7 +508,7 @@ export class Exiftool {
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
    * @throws Will throw an error if -all= tag is included in the tagsToExtract parameter.
-   * @throws Will throw an errof if process.exec returns a value in stderr.
+   * @throws Will throw an errof if exiftool returns a fatal error via stderr.
    * @param { string } [ fileOrDir=null ] - The string path to a file or directory for exiftool to use.
    * @param { string } [ shortcut=null ] - A string containing the name of an existing shortcut for exiftool to use.
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
@@ -556,6 +556,10 @@ export class Exiftool {
    * @summary Write a new metadata value to the designated tags.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
+   * @throws Throws an error if there is no valid path to an image file.
+   * @throws Throws an error if the current path is to a directory instead of a file.
+   * @throws Throws an error if the expected parameter is missing or of the wrong type.
+   * @throws Throws an errof if exiftool returns a fatal error via stderr.
    * @param { string|Array<string> } metadataToWrite - A string value with tag name and new value or an array of tag strings.
    * @return { Object|Error } Returns an object literal with success or error messages, or throws an exception if no image given.
    */
@@ -602,6 +606,10 @@ export class Exiftool {
    * @summary Clear the metadata from a tag, but keep the tag rather than stripping it from the image file.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
+   * @throws Throws an error if there is no valid path to an image file.
+   * @throws Throws an error if the current path is to a directory instead of a file.
+   * @throws Throws an error if the expected parameter is missing or of the wrong type.
+   * @throws Throws an errof if exiftool returns a fatal error via stderr.
    * @param { string|Array<string> } tagsToClear - A string value with tag name or an array of tag names.
    * @return { Object|Error } Returns an object literal with success or error messages, or throws an exception if no image given.
    */
@@ -650,7 +658,7 @@ export class Exiftool {
    * @async
    * @throws Will throw an error if instance property _path is missing.
    * @throws Will throw an error if instance property _isDirectory is true.
-   * @throws Will throw an error if child_process.exec returns a value in stderr.
+   * @throws Will throw an error if exiftool returns a fatal error via stderr.
    * @return { (Object|Error) } Returns a JSON object literal with success message or throws an Error if failed.
    */
   async stripMetadata() {
@@ -680,5 +688,45 @@ export class Exiftool {
       debug(o)
     }
     return o
+  }
+
+  /**
+   * This method takes a single string parameter which is a fully composed metadata query to be passed directly to exiftool.
+   * @summary This method takes a single string parameter which is a fully composed metadata query to be passed directly to exiftool.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @throws Will throw an error if the single string parameter is not provided.
+   * @throws Will throw an error if the exiftool command returns a fatal error via stderr.
+   * @param { string } query - A fully composed metadata to be passed directly to exiftool.
+   * @return { (Object|Error) } JSON object literal of metadata or throws an Error if failed.
+   */
+  async raw(query) {
+    debug('raw method entered')
+    if (query === '' || typeof query === 'undefined' || query.constructor !== String) {
+      throw new Error('No query was provided for exiftool to execute.')
+    }
+    let command = ''
+    const match = query.match(/(^[/?].*exiftool\s)/)
+    if (!match) {
+      if (this._executable === null) {
+        throw new Error('No path to exiftool executable provided.  Include exiftool path in query.')
+      }
+      command = this._executable
+    }
+    command += ` ${query}`
+    try {
+      let result = await cmd(command)
+      if (result.stderr !== '') {
+        throw new Error(`exiftool failed to exectue query: ${query}`)
+      }
+      result = JSON.parse(result.stdout.trim())
+      result.push({ exiftool_command: command })
+      debug(result)
+      return result
+    } catch (e) {
+      e.exiftool_command = command
+      debug(e)
+      return e
+    }
   }
 }

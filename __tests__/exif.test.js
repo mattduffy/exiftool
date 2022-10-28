@@ -4,13 +4,16 @@ import { rm } from 'node:fs/promises'
 import Debug from 'debug'
 /* eslint-disable import/extensions */
 import { Exiftool } from '../index.js'
+import { executable } from '../which.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const debug = Debug('exiftool:metadata')
+debug(`exif path: ${executable}`)
 debug(Exiftool)
 
 // Set the items to be used for all the tests here as constants.
+
 const testsDir = __dirname
 const imageDir = `${__dirname}/images`
 const image1 = `${imageDir}/copper.jpg`
@@ -265,5 +268,13 @@ describe('Exiftool metadata extractor', () => {
     const tag = ['-IPTC:Headline^=', '-IPTC:Contact^=']
     const result1 = await img1.clearMetadataFromTag(tag)
     expect(result1.stdout.trim()).toMatch(/1 image files updated/)
+  })
+
+  test('raw: send a fully composed exiftool command, bypassing instance config defualts', async () => {
+    // test sending a raw exiftool command
+    const img1 = new Exiftool()
+    const command = `${executable} -G -json -EXIF:ImageDescription -IPTC:ObjectName -IPTC:Keywords ${image1}`
+    const result1 = await img1.raw(command)
+    expect(result1[0]).toHaveProperty('IPTC:ObjectName')
   })
 })
