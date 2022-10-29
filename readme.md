@@ -10,6 +10,11 @@ npm install @mattduffy/exiftool
 ## Using Exiftool
 This package attempts to abastract the various uses of exiftool into a small collection of distinct methods that help to reduce the difficulty of composing complex metadata processing incantations.  The Exiftool class instantiates with a reasonable set of default options to produce explicitly labeled, yet compact, metadata output in JSON format.  The included options are easily modified if necessary, and even more customized exiftool incantations can be created and saved as [shortcuts](https://exiftool.org/TagNames/Shortcuts.html) in an [exiftool.config](https://exiftool.org/config.html) file.  
 
+```bash
+npm install --save @mattduffy/exiftool
+```
+
+
 ```javascript
 import { Exiftool } from '@mattduffy/exiftool'
 let exiftool = new Exiftool()
