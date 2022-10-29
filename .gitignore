@@ -13,6 +13,7 @@ yarn-error.log*
 lerna-debug.log*
 
 tmp
+.npmrc
 *.config.bk
 *.config.test
 __tests__/images/*_original
