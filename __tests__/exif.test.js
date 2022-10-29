@@ -1,10 +1,15 @@
+/**
+ * @module @mattduffy/exiftool
+ * @author Matthew Duffy <mattduffy@gmail.com>
+ * @file __tests__/exif.test.js A Jest test suite testing the methods of the Exiftool class.
+ */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { rm } from 'node:fs/promises'
 import Debug from 'debug'
 /* eslint-disable import/extensions */
 import { Exiftool } from '../index.js'
-import { executable } from '../which.js'
+import { path as executable } from '../which.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -37,7 +42,6 @@ afterAll(async () => {
   try {
     const dir = __dirname.split('/')
     const file = `${dir.slice(0, dir.length - 1).join('/')}/exiftool.config`
-    // const test = `${dir.slice(0, dir.length - 1).join('/')}/exiftool.config`
     debug(dir)
     await rm(`${file}.bk`)
     await rm(`${file}.test`)
@@ -96,7 +100,6 @@ describe('Exiftool metadata extractor', () => {
     // setConfigPathTest/bad/exiftool.config
     const badConfigFile = `${__dirname}/setConfigPathTest/bad/exiftool.config`
     const badResult = await img.setConfigPath(badConfigFile)
-    // o.e.code == 'ENOENT'
     expect(badResult.e.code).toMatch(/ENOENT/)
   })
 
