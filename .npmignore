@@ -1,8 +1,6 @@
-.npmrc
 coverage
 TODO.md
 tmp
-images/*_original
 *.config.bk
 *.config.test
 .*.swp

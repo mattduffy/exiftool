@@ -5,9 +5,9 @@
   "main": "index.js",
   "type": "module",
   "exports": {
-    "import": "./index.js",
-    "package.json": "./package.json",
-    "tests": "./__tests__/*.js"
+    ".": "./index.js",
+    "./which.js": "./which.js",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "test": "DEBUG=exiftool:* node --experimental-vm-modules node_modules/jest/bin/jest.js"
