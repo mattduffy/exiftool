@@ -230,3 +230,11 @@ let result = await exiftool.stripMetadata()
 */
 ```
 
+### Making Metadata Queries Directly
+It may be more convenient sometimes to issue a metadata query to ```exiftool``` directly rather than compose it through the class configured default options and methods.  Running complex, one-off queries recursively across a directy of images might be a good use for issuing a command composed outside of Exiftool.  This is an **Async/Await** method.
+
+```javascript
+let exiftool = new Exiftool()
+let result = await exiftool.raw('/usr/local/bin/exiftool b -jpgfromraw -w %d%f_%ue.jpg -execute -b -previewimage -w %d%f_%ue.jpg -execute -tagsfromfile @ -srcfile %d%f_%ue.jpg -overwrite_original -common_args --ext jpg /path/to/image/directory')
+console.log(result)
+```
