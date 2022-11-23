@@ -55,7 +55,7 @@ export class Exiftool {
    * @summary Initializes some asynchronus class properties not done in the constructor.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param { string } imagePath  - A file system path to set for exiftool to process.
+   * @param { string } imagePath - A file system path to set for exiftool to process.
    * @return { (Exiftool|boolean) } Returns fully initialized instance or false.
    */
   async init(imagePath) {
