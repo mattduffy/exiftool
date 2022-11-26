@@ -114,11 +114,12 @@ describe('Exiftool metadata extractor', () => {
     expect(result2.value).toBeTruthy()
     expect(result2.error).toBeNull()
 
+    /* Relative paths are now acceptable  */
     // test with a relative path to generate an error
     try {
       const img1 = new Exiftool()
-      const nonRootPath = 'images/copper.jpg'
-      await img1.init(nonRootPath)
+      const result3 = await img1.setPath('__tests__/images/copper.jpg')
+      expect(result3.error).toBeNull()
     } catch (e) {
       expect(e).toBeInstanceOf(Error)
     }

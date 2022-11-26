@@ -37,6 +37,7 @@ export class Exiftool {
     this._exiftool_config = `${this._cwd}/exiftool.config`
     this._extensionsToExclude = ['TXT', 'JS', 'JSON', 'MJS', 'CJS', 'MD', 'HTML', 'CSS']
     this._executable = null
+    this._version = null
     this._opts = {}
     this._opts.exiftool_config = `-config ${this._exiftool_config}`
     this._opts.outputFormat = '-json'
@@ -90,8 +91,10 @@ export class Exiftool {
       debug(e)
     }
     try {
-      const result = await this.which()
-      this._executable = result.value
+      if (this._executable === null) {
+        const result = await this.which()
+        this._executable = result.value
+      }
       debug('setting the command string')
       this.setCommand()
     } catch (e) {
@@ -99,6 +102,29 @@ export class Exiftool {
       debug(e)
     }
     return this
+  }
+
+  /** Get the version number of the currently installed exiftool.
+   * @summary Get the version number of the currently installed exiftool.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @returns { string|Error } Returns the version of exiftool as a string, or throws an error.
+   */
+  async version() {
+    if (this._version !== null) {
+      return this._version
+    }
+    try {
+      const ver = await cmd(`${this._executable} -ver`)
+      if (ver.stdout.slice(-1) === '\n') {
+        this._version = ver.stdout.slice(0, -1)
+        debug(`found: ${this._executable}`)
+      }
+    } catch (e) {
+      debug(e)
+      throw new Error('Exiftool not found?', { cause: e })
+    }
+    return this._version
   }
 
   /**
@@ -116,16 +142,17 @@ export class Exiftool {
       o.error = 'A path to image or directory is required.'
       return o
     }
-    if (!/^\//.test(imagePath)) {
+    const pathToImage = path.resolve('.', imagePath)
+    if (!/^\//.test(pathToImage)) {
       // the path parameter must be a fully qualified file path, starting with /
       throw new Error('The file system path to image must be a fully qualified path, starting from root /.')
     }
     try {
-      this._path = imagePath
-      this._fileStats = await stat(imagePath)
+      this._path = pathToImage
+      this._fileStats = await stat(pathToImage)
       this._isDirectory = this._fileStats.isDirectory()
       if (this._fileStats.isDirectory()) {
-        this._imgDir = imagePath
+        this._imgDir = pathToImage
       }
       this.setCommand()
       o.value = true
@@ -233,6 +260,8 @@ export class Exiftool {
         const out = await cmd('which exiftool')
         if (out.stdout.slice(-1) === '\n') {
           o.value = out.stdout.slice(0, -1)
+          this._executable = o.value
+          debug(`found: ${this._executable}`)
         }
       } catch (e) {
         o.error = e

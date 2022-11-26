@@ -36,4 +36,7 @@
 - [x] - add a jest test case to clear metadata from a designated tag
 - [x] raw: create a class method to send a fully composed metadata query to exiftool, ignoring defaults
 - [x] - add a jest test case to send a fully composed metadata query to exiftool
-
+- [x] version: create a class method to report the version of exiftool installed
+- [x] - modify the setPath method so it accepts relative paths to an image
+- [x] - modify jest test case that detected relative paths as an error, to allow
+- [ ] create a cli invocable version of exiftool
