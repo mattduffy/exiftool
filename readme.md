@@ -237,3 +237,14 @@ let exiftool = new Exiftool()
 let result = await exiftool.raw('/usr/local/bin/exiftool b -jpgfromraw -w %d%f_%ue.jpg -execute -b -previewimage -w %d%f_%ue.jpg -execute -tagsfromfile @ -srcfile %d%f_%ue.jpg -overwrite_original -common_args --ext jpg /path/to/image/directory')
 console.log(result)
 ```
+
+### Exiftool Version and Location
+Exiftool is [updated](https://exiftool.org/history.html) very frequently, so it might be useful to know which version is installed and being used by this package.  If a TAG is present in the image metadata, but not being returned in the query, the installed version of Exiftool might not know about it and need to be updated.  The install location and version of Exiftool are both queryable.  These are **Async/Await** methods.
+
+```javascript
+let exiftool = new Exiftool()
+console.log(await exiftool.which())
+// /usr/local/bin/exiftool
+console.log(await exiftool.version())
+// 12.46
+```

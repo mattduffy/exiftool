@@ -92,8 +92,10 @@ export class Exiftool {
     }
     try {
       if (this._executable === null) {
-        const result = await this.which()
-        this._executable = result.value
+        this._executable = await this.which()
+        // const result = await this.which()
+        // this._executable = result.value
+        this._version = await this.version()
       }
       debug('setting the command string')
       this.setCommand()
@@ -102,29 +104,6 @@ export class Exiftool {
       debug(e)
     }
     return this
-  }
-
-  /** Get the version number of the currently installed exiftool.
-   * @summary Get the version number of the currently installed exiftool.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @async
-   * @returns { string|Error } Returns the version of exiftool as a string, or throws an error.
-   */
-  async version() {
-    if (this._version !== null) {
-      return this._version
-    }
-    try {
-      const ver = await cmd(`${this._executable} -ver`)
-      if (ver.stdout.slice(-1) === '\n') {
-        this._version = ver.stdout.slice(0, -1)
-        debug(`found: ${this._executable}`)
-      }
-    } catch (e) {
-      debug(e)
-      throw new Error('Exiftool not found?', { cause: e })
-    }
-    return this._version
   }
 
   /**
@@ -248,26 +227,51 @@ export class Exiftool {
    * @summary Find the path to the executable exiftool binary.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @return { Object } Returns an object literal with file system path to exiftool binary or error if not found.
+   * @return { string|Error } Returns the file system path to exiftool binary, or throws an error.
    */
   async which() {
-    debug('which method entered')
-    const o = { value: null, error: null }
-    if (this._executable !== '' && typeof this._executable !== 'undefined' && this._executable !== null) {
-      o.value = this._exectuable
-    } else {
-      try {
-        const out = await cmd('which exiftool')
-        if (out.stdout.slice(-1) === '\n') {
-          o.value = out.stdout.slice(0, -1)
-          this._executable = o.value
-          debug(`found: ${this._executable}`)
-        }
-      } catch (e) {
-        o.error = e
-      }
+    if (this._executable !== null) {
+      return this._executable
     }
-    return o
+    let which
+    try {
+      which = await cmd('which exiftool')
+      if (which.stdout.slice(-1) === '\n') {
+        which = which.stdout.slice(0, -1)
+        this._executable = which
+        debug(`found: ${which}`)
+      }
+    } catch (e) {
+      debug(e)
+      throw new Error('Exiftool not found?', { cause: e })
+    }
+    return which
+  }
+
+  /** Get the version number of the currently installed exiftool.
+   * @summary Get the version number of the currently installed exiftool.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @returns { string|Error } Returns the version of exiftool as a string, or throws an error.
+   */
+  async version() {
+    if (this._version !== null) {
+      return this._version
+    }
+    let ver
+    const _exiftool = (this._executable !== null ? this._executable : await this.which())
+    try {
+      ver = await cmd(`${_exiftool} -ver`)
+      if (ver.stdout.slice(-1) === '\n') {
+        ver = ver.stdout.slice(0, -1)
+        this._version = ver
+        debug(`found: ${ver}`)
+      }
+    } catch (e) {
+      debug(e)
+      throw new Error('Exiftool not found?', { cause: e })
+    }
+    return ver
   }
 
   /**

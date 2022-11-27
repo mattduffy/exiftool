@@ -81,7 +81,7 @@ describe('Exiftool metadata extractor', () => {
   test('which: exiftool is accessible in the path', async () => {
     const img = new Exiftool()
     const exif = await img.which()
-    expect(exif.value).toMatch(/exiftool/)
+    expect(exif).toMatch(/exiftool/)
   })
 
   test('get/setConfigPath: change the file system path to the exiftool.config file', async () => {
