@@ -510,23 +510,31 @@ export class Exiftool {
    */
   setMetadataTags(tagsToExtract) {
     debug('setMetadataTags method entered')
-    const tags = tagsToExtract
-    debug(`>> ${tags}`)
+    let tags
+    debug(`>> ${tagsToExtract}`)
     const o = { value: null, error: null }
-    if (tags === 'undefined' || tags === '' || tags === null) {
+    if (tagsToExtract === 'undefined' || tagsToExtract === '' || tagsToExtract === null) {
       o.error = 'One or more metadata tags are required'
     } else {
-      if (Array === tags.constructor) {
+      if (Array === tagsToExtract.constructor) {
         debug('array of tags')
+        // check array elements so they all have '-' prefix
+        tags = tagsToExtract.map((tag) => {
+          if (!/^-{1,1}[^-]?.+$/.test(tag)) {
+            return `-${tag}`
+          }
+          return tag
+        })
+        debug(tags)
         // join array elements in to a string
-        this._opts.tagList = `-${tags.join(' -')}`
+        this._opts.tagList = `${tags.join(' ')}`
       }
-      if (String === tags.constructor) {
+      if (String === tagsToExtract.constructor) {
         debug('string of tags')
-        if (tags.match(/^-/) === null) {
-          this._opts.tagList = `-${tags}`
+        if (tagsToExtract.match(/^-/) === null) {
+          this._opts.tagList = `-${tagsToExtract}`
         }
-        this._opts.tagList = tags
+        this._opts.tagList = tagsToExtract
       }
       debug(this._opts.tagList)
       debug(this._command)
@@ -548,7 +556,7 @@ export class Exiftool {
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
    * @return { (Object|Error) } JSON object literal of metadata or throws an Error if failed.
    */
-  async getMetadata(fileOrDir = null, shortcut = null, tagsToExtract = null) {
+  async getMetadata(fileOrDir = null, shortcut = null, ...tagsToExtract) {
     debug('getMetadata method entered')
     if (fileOrDir !== null && fileOrDir !== '') {
       this.setPath(fileOrDir)
@@ -556,12 +564,13 @@ export class Exiftool {
     if (shortcut !== null && shortcut !== '') {
       this.setShortcut(shortcut)
     }
-    if (tagsToExtract !== null && tagsToExtract !== '') {
+    // if (tagsToExtract !== null && tagsToExtract !== 'undefined') {
+    if (tagsToExtract.length > 0) {
       if (tagsToExtract.includes('-all= ')) {
         debug("Can't include metadata stripping -all= tag in get metadata request.")
         throw new Error("Can't include metadata stripping -all= tag in get metadata reqeust.")
       }
-      const options = this.setMetadataTags(tagsToExtract)
+      const options = this.setMetadataTags(tagsToExtract.flat())
       debug(options)
       debug(this._opts)
       if (options.error) {
