@@ -3,7 +3,7 @@
 This package for Node.js provides an object-oriented wrapper around the phenomenal utility, [exiftool](https://exiftool.org), created by [Phil Harvey](https://exiftool.org/index.html#donate).  This package requires the ```exiftool``` perl library to already be installed.  Installation instructions can be found [here](https://exiftool.org/install.html).  This package is compatible with POSIX systems; it will not work on a Windows machine.  This package will not run in a browser.
 
 ## Using Exiftool
-This package attempts to abastract the various uses of exiftool into a small collection of distinct methods that help to reduce the difficulty of composing complex metadata processing incantations.  The Exiftool class instantiates with a reasonable set of default options to produce explicitly labeled, yet compact, metadata output in JSON format.  The included options are easily modified if necessary, and even more customized exiftool incantations can be created and saved as [shortcuts](https://exiftool.org/TagNames/Shortcuts.html) in an [exiftool.config](https://exiftool.org/config.html) file.  
+This package attempts to abstract the various uses of exiftool into a small collection of distinct methods that help to reduce the difficulty of composing complex metadata processing incantations.  The Exiftool class instantiates with a reasonable set of default options to produce explicitly labeled, yet compact, metadata output in JSON format.  The included options are easily modified if necessary, and even more customized exiftool incantations can be created and saved as [shortcuts](https://exiftool.org/TagNames/Shortcuts.html) in an [exiftool.config](https://exiftool.org/config.html) file.  
 
 ```bash
 npm install --save @mattduffy/exiftool
