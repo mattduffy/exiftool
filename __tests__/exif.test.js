@@ -90,7 +90,7 @@ describe('Exiftool metadata extractor', () => {
     // setConfigPathTest/exiftool.config
     const newConfigFile = `${__dirname}/setConfigPathTest/exiftool.config`
     const oldConfigFile = img.getConfigPath()
-    expect(oldConfigFile.value).toMatch(/exiftool\/exiftool.config$/)
+    expect(oldConfigFile.value).toMatch(/exiftool\/src\/exiftool.config$/)
 
     const result = await img.setConfigPath(newConfigFile)
     expect(result.value).toBeTruthy()
