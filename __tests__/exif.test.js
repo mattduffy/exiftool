@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url'
 import { rm } from 'node:fs/promises'
 import Debug from 'debug'
 /* eslint-disable import/extensions */
-import { Exiftool } from '../index.js'
-import { path as executable } from '../which.js'
+import { Exiftool } from '../src/index.js'
+import { path as executable } from '../src/which.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

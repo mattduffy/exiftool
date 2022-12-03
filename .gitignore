@@ -17,6 +17,7 @@ tmp
 *.config.bk
 *.config.test
 __tests__/images/*_original
+src/exiftool.config
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

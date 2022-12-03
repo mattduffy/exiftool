@@ -19,8 +19,8 @@
   "main": "index.js",
   "type": "module",
   "exports": {
-    ".": "./index.js",
-    "./which.js": "./which.js",
+    ".": "./src/index.js",
+    "./which.js": "./src/which.js",
     "./package.json": "./package.json"
   },
   "scripts": {

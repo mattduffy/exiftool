@@ -1,6 +1,8 @@
 coverage
 TODO.md
 tmp
+src/exiftool.config
+__tests__/images/*_original
 *.config.bk
 *.config.test
 .*.swp
