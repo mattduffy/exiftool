@@ -238,6 +238,27 @@ let result = await exiftool.raw('/usr/local/bin/exiftool b -jpgfromraw -w %d%f_%
 console.log(result)
 ```
 
+### Setting File Extension for Exiftool to ignnore
+Exiftool maintains a list of file extensions to tell ```exiftool``` to ignore when the target of the metadata query is a directory rather than a file.  This list of file extensions can be updated as necessary.  The ```setExtensionsToExclude()``` method may take two array parameters.  The first paramater is an array of file extensions to add to the exclude list.  The second paramater is an array of file extensions to remove from the current exclude list.
+
+```javascript
+let exiftool = new Exiftool()
+console.log(exiftool.getExtensionsToExclude())
+// [ 'cjs', 'css', 'html', 'js', 'json', 'md', 'mjs', 'txt' ]
+const extensionsToAdd = ['scss','yaml']
+const extensionsToRemove = ['txt']
+exiftool.setExtensionsToExclude(extensionsToAdd, extensionsToRemove)
+console.log(exiftool.getExtensionsToExclude())
+// [ 'cjs', 'css', 'html', 'js', 'json', 'md', 'mjs', 'scss', 'yaml' ]
+```
+```javascript
+// Just adding file extensions
+exiftool.setExtensionsToExclude(extensionsToAdd)
+
+// Just removing file extensions
+exiftool.setExtensionsToExclude(null, extensionsToRemove)
+```
+
 ### Exiftool Version and Location
 Exiftool is [updated](https://exiftool.org/history.html) very frequently, so it might be useful to know which version is installed and being used by this package.  If a TAG is present in the image metadata, but not being returned in the query, the installed version of Exiftool might not know about it and need to be updated.  The install location and version of Exiftool are both queryable.  These are **Async/Await** methods.
 
