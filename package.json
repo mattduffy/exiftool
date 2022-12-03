@@ -1,6 +1,6 @@
 {
   "name": "@mattduffy/exiftool",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "A simple object oriented wrapper for the exiftool image metadata utility.",
   "keywords": [
     "exiftool",
