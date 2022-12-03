@@ -35,7 +35,7 @@ export class Exiftool {
     this._fileStats = null
     this._cwd = __dirname
     this._exiftool_config = `${this._cwd}/exiftool.config`
-    this._extensionsToExclude = ['TXT', 'JS', 'JSON', 'MJS', 'CJS', 'MD', 'HTML', 'CSS']
+    this._extensionsToExclude = ['txt', 'js', 'json', 'mjs', 'cjs', 'md', 'html', 'css']
     this._executable = null
     this._version = null
     this._opts = {}
@@ -49,6 +49,7 @@ export class Exiftool {
     this._opts.quiet = '-q'
     this._opts.excludeTypes = ''
     this._command = null
+    this.orderExcludeTypesArray()
   }
 
   /**
@@ -286,6 +287,22 @@ export class Exiftool {
   }
 
   /**
+   * Lexically order the array of file extensions to be excluded from the exiftool query.
+   * @summary Lexically order the array of file extensions to be excluded from the exiftool query.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return undefined
+   */
+  orderExcludeTypesArray() {
+    this._extensionsToExclude.forEach((ext) => ext.toLowerCase())
+    this._extensionsToExclude.sort((a, b) => {
+      if (a.toLowerCase() < b.toLowerCase()) return -1
+      if (a.toLowerCase() > b.toLowerCase()) return 1
+      return 0
+    })
+    // this._extensionsToExclude = temp
+  }
+
+  /**
    * Compose the command line string of file type extentions for exiftool to exclude.
    * @summary Compose the command line string of file type extensions for exiftool to exclude.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -310,17 +327,37 @@ export class Exiftool {
    * @summary Set the array of file type extenstions that exiftool should ignore while recursing through a directory.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @throws Will throw an error if extensionsArray is not an Array.
-   * @param { Array<string> } extentionsArray - An array of file type extentions.
+   * @param { Array<string> } extensionsToAddArray - An array of file type extensions to add to the exclude list.
+   * @param { Array<string> } extensionsToRemoveArray - An array of file type extensions to remove from the exclude list.
    * @return { undefined }
    */
-  setExtensionsToExclude(extentionsArray) {
-    if (extentionsArray.constructor !== Array) {
-      throw new Error('Expecting an array of file extensions.')
-    } else {
-      this._extensionsToExclude = extentionsArray
-      this._opts.excludeTypes = ''
-      this.setExcludeTypes()
+  setExtensionsToExclude(extensionsToAddArray = null, extensionsToRemoveArray = null) {
+    // if (extensionsToAddArray !== '' || extensionsToAddArray !== null) {
+    if (extensionsToAddArray !== null) {
+      if (extensionsToAddArray.constructor !== Array) {
+        throw new Error('Expecting an array of file extensions to be added.')
+      }
+      extensionsToAddArray.forEach((ext) => {
+        if (!this._extensionsToExclude.includes(ext.toLowerCase())) {
+          this._extensionsToExclude.push(ext.toLowerCase())
+        }
+      })
     }
+    // if (extensionsToRemoveArray !== '' || extensionsToRemoveArray !== null) {
+    if (extensionsToRemoveArray !== null) {
+      if (extensionsToRemoveArray.constructor !== Array) {
+        throw new Error('Expecting an array of file extensions to be removed.')
+      }
+      extensionsToRemoveArray.forEach((ext) => {
+        const index = this._extensionsToExclude.indexOf(ext.toLowerCase())
+        if (index > 0) {
+          this._extensionsToExclude.splice(index, 1)
+        }
+      })
+    }
+    this.orderExcludeTypesArray()
+    this._opts.excludeTypes = ''
+    this.setExcludeTypes()
   }
 
   /**
