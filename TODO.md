@@ -39,4 +39,9 @@
 - [x] version: create a class method to report the version of exiftool installed
 - [x] - modify the setPath method so it accepts relative paths to an image
 - [x] - modify jest test case that detected relative paths as an error, to allow
+- [x] stripLocation: create a class method to just clear GPS metadata
+- [x] nemo: create a class method to add GPS metadata for point nemo
+- [x] add some usefull shortcuts to the exiftool.config file
 - [ ] create a cli invocable version of exiftool
+
+

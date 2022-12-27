@@ -204,6 +204,8 @@ export class Exiftool {
     const o = { value: null, error: null }
     const stub = `%Image::ExifTool::UserDefined::Shortcuts = (
     BasicShortcut => ['file:Directory','file:FileName','EXIF:CreateDate','file:MIMEType','exif:Make','exif:Model','exif:ImageDescription','iptc:ObjectName','iptc:Caption-Abstract','iptc:Keywords','Composite:GPSPosition'],
+    Location => ['EXIF:GPSLatitude', 'EXIF:GPSLongitude', 'EXIF:GPSAltitude', 'EXIF:GPSLatitudeRef', 'EXIF:GPSLongitudeRef', 'EXIF:GPSAltitudeRef'],
+    StripGPS => ['gps:all='],
 );`
     // let fileName = `${this._cwd}/exiftool.config`
     const fileName = this._exiftool_config
@@ -221,6 +223,60 @@ export class Exiftool {
       o.errorStack = e.stack
     }
     return o
+  }
+
+  /**
+   * Set the GPS location to point nemo.
+   * @summary Set the GPS location to point nemo.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @throws { Error } Throws an error if no image is set yet.
+   * @return { Object } Object literal with stdout or stderr.
+   */
+  async nemo() {
+    if (!this._path) {
+      throw new Error('No image file set yet.')
+    }
+    try {
+      const latitude = 22.319469
+      const latRef = 'S'
+      const longitude = 114.189505
+      const longRef = 'W'
+      const alt = 10000
+      const altRef = 0
+      const command = `${this._executable} -GPSLatitude=${latitude} -GPSLatitudeRef=${latRef} -GPSLongitude=${longitude} -GPSLongitudeRef=${longRef} -GPSAltitude=${alt} -GPSAltitudeRef=${altRef} ${this._path}`
+      // const command = `${this._executable} Composite:GPSLatitude=${latitude}' Composite:GPSLongitude=${longitude}`
+      const result = await cmd(command)
+      result.exiftool_command = command
+      debug('nemo: %o', result)
+      return result
+    } catch (e) {
+      throw new Error(e)
+    }
+  }
+
+  /**
+   * Strip all location data from the image.
+   * @summary Strip all location data from the image.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @throws { Error } Throws an error if no image is set yet.
+   * @return { Object } Object literal with stdout or stderr.
+   */
+  async stripLocation() {
+    if (!this._path) {
+      throw new Error('No image file set yet.')
+    }
+    try {
+      const tags = '-overwrite_original -gps:all='
+      const command = `${this._executable} ${tags} ${this._path}`
+      const result = await cmd(command)
+      result.exiftool_command = command
+      debug('stripLocation: %o', result)
+      return result
+    } catch (e) {
+      throw new Error(e)
+    }
   }
 
   /**
@@ -435,9 +491,13 @@ export class Exiftool {
       exists = false
     } else {
       try {
-        const output = await cmd(`grep ${shortcut} ${this._exiftool_config}`)
-        const stdout = output.stdout.trim().match(shortcut)
-        if (shortcut === stdout[0]) {
+        const re = new RegExp(`${shortcut}`, 'i')
+        const grep = `grep -i "${shortcut}" ${this._exiftool_config}`
+        const output = await cmd(grep)
+        output.grep_command = grep
+        debug('grep -i: %o', output)
+        const stdout = output.stdout?.match(re)
+        if (shortcut.toLowerCase() === stdout[0].toLowerCase()) {
           exists = true
         } else {
           exists = false
@@ -465,13 +525,20 @@ export class Exiftool {
       o.error = 'Shortcut name must be provided as a string.'
     } else {
       try {
-        const sedCommand = `sed -i.bk "2i\\    ${newShortcut}," ${this._exiftool_config}`
+        let sedCommand
+        if (process.platform === 'darwin') {
+          /* eslint-disable-next-line no-useless-escape */
+          sedCommand = `sed -i'.bk' -e '2i\\
+              ${newShortcut},' ${this._exiftool_config}`
+        } else {
+          sedCommand = `sed -i.bk "2i\\    ${newShortcut}," ${this._exiftool_config}`
+        }
         debug(`sed command: ${sedCommand}`)
         const output = await cmd(sedCommand)
         debug(output)
+        o.command = sedCommand
         if (output.stderr === '') {
           o.value = true
-          o.command = sedCommand
         } else {
           o.value = false
           o.error = output.stderr
@@ -601,7 +668,6 @@ export class Exiftool {
     if (shortcut !== null && shortcut !== '') {
       this.setShortcut(shortcut)
     }
-    // if (tagsToExtract !== null && tagsToExtract !== 'undefined') {
     if (tagsToExtract.length > 0) {
       if (tagsToExtract.includes('-all= ')) {
         debug("Can't include metadata stripping -all= tag in get metadata request.")

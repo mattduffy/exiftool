@@ -16,6 +16,7 @@ tmp
 .npmrc
 *.config.bk
 *.config.test
+__tests__/images/gps
 __tests__/images/*_original
 src/exiftool.config
 
