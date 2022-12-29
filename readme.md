@@ -229,6 +229,18 @@ let result = await exiftool.stripMetadata()
 */
 ```
 
+If GPS location data is the only metadata that needs to be stripped, the ```stripLocation()``` method can be used.  This method updates the images in place.  It can be called on either a directory of images or a single image.  This is an **Async/Await** method.
+```javascript
+let exiftool = new Exiftool()
+exiftool = await exiftool.init('/path/to/images')
+await exiftool.stripLocation()
+// {
+//   stdout: '    1 directories scanned\n    4 image files updated\n',
+//   stderr: '',
+//   exiftool_command: '/usr/local/bin/exiftool -overwrite_original -gps:all= /path/to/images/'
+// }
+```
+
 ### Making Metadata Queries Directly
 It may be more convenient sometimes to issue a metadata query to ```exiftool``` directly rather than compose it through the class configured default options and methods.  Running complex, one-off queries recursively across a directy of images might be a good use for issuing a command composed outside of Exiftool.  This is an **Async/Await** method.
 
