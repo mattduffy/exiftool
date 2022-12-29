@@ -42,6 +42,8 @@
 - [x] stripLocation: create a class method to just clear GPS metadata
 - [x] nemo: create a class method to add GPS metadata for point nemo
 - [x] add some usefull shortcuts to the exiftool.config file
+- [ ] add functionality to list versions backedup exiftool.config file
+- [ ] add functionality to restore a previous version of exiftool.config file
 - [ ] create a cli invocable version of exiftool
 
 
