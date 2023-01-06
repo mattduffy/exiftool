@@ -1,7 +1,7 @@
 /**
  * @module @mattduffy/exiftool
  * @author Matthew Duffy <mattduffy@gmail.com>
- * @file index.js The Exiftool class definition file.
+ * @file src/index.js The Exiftool class definition file.
  */
 
 import path from 'node:path'
