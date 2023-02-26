@@ -29,8 +29,8 @@ export class Exiftool {
    */
   constructor(imagePath) {
     debug('constructor method entered')
-    this._imgDir = imagePath || null
-    this._path = imagePath || null
+    this._imgDir = imagePath ?? null
+    this._path = imagePath ?? null
     this._isDirectory = null
     this._fileStats = null
     this._cwd = __dirname
