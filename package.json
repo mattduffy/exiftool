@@ -16,7 +16,7 @@
   },
   "exports": {
     ".": "./src/index.js",
-    "./which": "./src/which.js",
+    "./which.js": "./src/which.js",
     "./package.json": "./package.json"
   },
   "scripts": {
