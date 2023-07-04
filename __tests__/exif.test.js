@@ -186,12 +186,14 @@ describe('Exiftool metadata extractor', () => {
   })
 
   test('getMetadata: specify tag list as an optional parameter', async () => {
-    expect.assertions(2)
+    expect.assertions(3)
     // test adding additional tags to the command
     let img1 = new Exiftool()
     // init with the copper.jpg image1
     img1 = await img1.init(image1)
     const result1 = await img1.getMetadata('', '', ['file:FileSize', 'file:DateTimeOriginal', 'file:Model'])
+    const count = parseInt(result1.slice(-1)[0], 10)
+    expect(count).toBe(1)
     expect(result1[0]).toHaveProperty('File:FileSize')
     expect(result1[0]).toHaveProperty('EXIF:ImageDescription')
   })

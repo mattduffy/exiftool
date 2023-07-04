@@ -17,6 +17,9 @@ let exiftool = new Exiftool()
 The Exiftool class constructor does most of the initial setup.  A call to the ```init()``` method is currently necessary to complete setup because it makes some asynchronous calls to determine the location of exiftool, whether the exiftool.config file is present - creating one if not, and composing the exiftool command string from the default options.  The ```init()``` method takes a string parameter which is the file system path to an image file or a directory of images.  This is an **Async/Await** method.
 ```javascript
 exiftool = await exiftool.init( '/www/site/images/myNicePhoto.jpg' )
+
+// or in one line...
+let exiftool = await new Exiftool().init( '/www/site/images/myNicePhoto.jpg' )
 ```
 
 At this point, Exiftool is ready to extract metadata from the image ```myNicePhoto.jpg```.  Use the ```getMetadata()``` to extract the metadata.    This is an **Async/Await** method.  
@@ -65,10 +68,13 @@ let metadata = await exiftool.getMetadata()
   },
   {
     exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -c "%.6f" -BasicShortcut -G -s3 -q --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/copper.jpg'
-  }
+  },
+  1
 ]
  ```
 The ```exiftool_command``` property is the command composed from all the default options, using the pre-configured BasicShortcut saved in the exiftool.config file.
+
+The last element in the metadata array is the count of files that exiftool inspected and returned data for.
 
 Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories containing images just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the list of extensions to exclude with the ```setExtensionsToExclude()``` method.
 
@@ -103,7 +109,8 @@ let metadata = await exiftool.getMetadata()
   },
   {
     exiftool_command: '/usr/local/bin/exiftool -config /home/node_package_development/exiftool/exiftool.config -json -c "%.6f"  -BasicShortcut -G -s3 -q --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext ESLINT images/'
-  }
+  },
+  3
 ]
 ```
 

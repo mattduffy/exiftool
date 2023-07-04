@@ -687,7 +687,9 @@ export class Exiftool {
         throw new Error(metadata.stderr)
       }
       metadata = JSON.parse(metadata.stdout)
+      const count = metadata.length
       metadata.push({ exiftool_command: this._command })
+      metadata.push(count)
       debug(metadata)
       return metadata
     } catch (e) {
