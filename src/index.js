@@ -122,7 +122,15 @@ export class Exiftool {
       o.error = 'A path to image or directory is required.'
       return o
     }
-    const pathToImage = path.resolve('.', imagePath)
+    let pathToImage
+    if (Array.isArray(imagePath)) {
+      let temp = imagePath.map((i) => path.resolve('.', i))
+      temp = temp.join(' ')
+      debug(`imagePath passed as an Array.  Resolving and concatting the paths into a single string: ${temp}`)
+      pathToImage = temp
+    } else {
+      pathToImage = path.resolve('.', imagePath)
+    }
     if (!/^\//.test(pathToImage)) {
       // the path parameter must be a fully qualified file path, starting with /
       throw new Error('The file system path to image must be a fully qualified path, starting from root /.')
@@ -586,6 +594,18 @@ export class Exiftool {
   }
 
   /**
+   * Clear the currently set exiftool shortcut.  No shortcut means exiftool returns all tags.
+   * @summary Clear the currently set exiftool shortcut.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { undefined }
+   */
+  clearShortcut() {
+    debug('clearShortcut method entered')
+    this._opts.shortcut = ''
+    this.setCommand()
+  }
+
+  /**
    * Set a specific exiftool shortcut.  The new shortcut must already exist in the exiftool.config file.
    * @summary Set a specific exiftool shortcut to use.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -595,7 +615,7 @@ export class Exiftool {
   setShortcut(shortcut) {
     debug('setShortcut method entered')
     const o = { value: null, error: null }
-    if (shortcut === 'undefined' || shortcut === null) {
+    if (shortcut === undefined || shortcut === null) {
       o.error = 'Shortcut must be a string value.'
     } else {
       this._opts.shortcut = `-${shortcut}`
@@ -660,13 +680,21 @@ export class Exiftool {
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
    * @return { (Object|Error) } JSON object literal of metadata or throws an Error if failed.
    */
-  async getMetadata(fileOrDir = null, shortcut = null, ...tagsToExtract) {
+  // async getMetadata(fileOrDir = null, shortcut = null, ...tagsToExtract) {
+  async getMetadata(fileOrDir, shortcut, ...tagsToExtract) {
     debug('getMetadata method entered')
     if (fileOrDir !== null && fileOrDir !== '') {
       this.setPath(fileOrDir)
     }
-    if (shortcut !== null && shortcut !== '') {
+    debug(`shortcut: ${shortcut}`)
+    // if (shortcut !== null && shortcut !== '') {
+    if (shortcut !== null && shortcut !== '' && shortcut !== false) {
       this.setShortcut(shortcut)
+    } else if (shortcut === null || shortcut === false) {
+      this.clearShortcut()
+    } else {
+    // if (shortcut === '') {
+      // leave default BasicShortcut in place
     }
     if (tagsToExtract.length > 0) {
       if (tagsToExtract.includes('-all= ')) {
