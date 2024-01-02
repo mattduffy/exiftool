@@ -21,6 +21,11 @@ exiftool = await exiftool.init( '/www/site/images/myNicePhoto.jpg' )
 // or in one line...
 let exiftool = await new Exiftool().init( '/www/site/images/myNicePhoto.jpg' )
 ```
+It is also possible to pass an array of strings to the ```init()``` method if you have more than one image.
+```javascript
+let images = ['/www/site/images/one.jpg', '/www/site/images/two.jpg', '/www/site/images/three.jpg']
+let exiftool = await new Exiftool().init(images)
+```
 
 At this point, Exiftool is ready to extract metadata from the image ```myNicePhoto.jpg```.  Use the ```getMetadata()``` to extract the metadata.    This is an **Async/Await** method.  
 
