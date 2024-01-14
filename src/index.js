@@ -48,6 +48,7 @@ export class Exiftool {
     this._opts.compactFormat = '-s3'
     this._opts.quiet = '-q'
     this._opts.excludeTypes = ''
+    this._opts.binaryFormat = '-b'
     this._command = null
     this.orderExcludeTypesArray()
   }
@@ -680,7 +681,6 @@ export class Exiftool {
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
    * @return { (Object|Error) } JSON object literal of metadata or throws an Error if failed.
    */
-  // async getMetadata(fileOrDir = null, shortcut = null, ...tagsToExtract) {
   async getMetadata(fileOrDir, shortcut, ...tagsToExtract) {
     debug('getMetadata method entered')
     if (fileOrDir !== null && fileOrDir !== '') {
