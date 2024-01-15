@@ -81,6 +81,15 @@ The ```exiftool_command``` property is the command composed from all the default
 
 The last element in the metadata array is the count of files that exiftool inspected and returned data for.
 
+There are several tags that store binary data, such as image thumbnails, color profile, image digests, etc..  The default state for exiftool is to not extract binary data from tags.  If you would like to extract the binary data, use the ```enableBinaryTagOutput()``` method before calling the ```getMetadata()``` method.
+
+```javascript
+let exiftool = new Exiftool()
+exiftool = await exiftool.init( 'images/copper.jpg' )
+exiftool.enableBinaryTagOutput(true)
+let metadata = await exiftool.getMetadata()
+```
+
 Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories containing images just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the list of extensions to exclude with the ```setExtensionsToExclude()``` method.
 
 ```javascript
