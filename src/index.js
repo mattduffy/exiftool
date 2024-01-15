@@ -48,7 +48,7 @@ export class Exiftool {
     this._opts.compactFormat = '-s3'
     this._opts.quiet = '-q'
     this._opts.excludeTypes = ''
-    this._opts.binaryFormat = '-b'
+    this._opts.binaryFormat = ''
     this._command = null
     this.orderExcludeTypesArray()
   }
@@ -106,6 +106,21 @@ export class Exiftool {
       debug(e)
     }
     return this
+  }
+
+  /**
+   * Set ExifTool to extract binary tag data.
+   * @summary Set ExifTool to extract binary tag data.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @param { boolean } enabled - True/False value to enable/disable binary tag extraction.
+   * @return { undefined }
+   */
+  enableBinaryTagOutput(enabled) {
+    if (enabled) {
+      this._opts.binaryFormat = '-b'
+    } else {
+      this._opts.binaryFormat = ''
+    }
   }
 
   /**
