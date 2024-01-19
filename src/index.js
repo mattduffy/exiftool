@@ -777,7 +777,7 @@ export class Exiftool {
     try {
       debug(`tagString: ${tagString}`)
       const file = `${this._path}`
-      const write = `${this._executable} ${tagString} ${file}`
+      const write = `${this._executable} ${this._opts.exiftool_config} ${tagString} ${file}`
       o.command = write
       const result = await cmd(write)
       if (result.stdout.trim() === null) {
