@@ -49,6 +49,7 @@ export class Exiftool {
     this._opts.quiet = '-q'
     this._opts.excludeTypes = ''
     this._opts.binaryFormat = ''
+    this._opts.structFormat = ''
     this._command = null
     this.orderExcludeTypesArray()
   }
@@ -106,6 +107,21 @@ export class Exiftool {
       debug(e)
     }
     return this
+  }
+
+  /**
+   * Set ExifTool to extract xmp struct tag data.
+   * @summary Set ExifTool to extract xmp struct tag data.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @param { boolean } enabled - True/False value to enable/disable xmp struct tag extraction.
+   * @return { undefined }
+   */
+  enableXMPStructTagOutput(enabled) {
+    if (enabled) {
+      this._opts.structFormat = '-struct'
+    } else {
+      this._opts.structFormat = ''
+    }
   }
 
   /**
