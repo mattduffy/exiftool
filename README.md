@@ -90,6 +90,14 @@ exiftool.enableBinaryTagOutput(true)
 let metadata = await exiftool.getMetadata()
 ```
 
+XMP tags can contain complex, structured content.  [exiftool](https://exiftool.org/struct.html) is able to extract this structured content, or flatten it into a single value.  The default state for exiftool is to flatten the tag values.  If you would like to extract the complex structured data, use the ```enableXMPStructTagOutput()``` method before calling the ```getMetadata()``` method.
+
+```javascript
+let exiftool = await new Exiftool().init( 'images/copper.jpg' )
+exiftool.enableXMPStructTagOutput(true)
+let metadata = await exiftool.getMetadata()
+```
+
 Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories containing images just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the list of extensions to exclude with the ```setExtensionsToExclude()``` method.
 
 ```javascript
