@@ -50,6 +50,7 @@ export class Exiftool {
     this._opts.excludeTypes = ''
     this._opts.binaryFormat = ''
     this._opts.structFormat = ''
+    this._opts.overwrite_original = ''
     this._command = null
     this.orderExcludeTypesArray()
   }
@@ -107,6 +108,22 @@ export class Exiftool {
       debug(e)
     }
     return this
+  }
+
+  /**
+   * Set ExifTool to overwrite the original image file when writing new tag data.
+   * @summary Set ExifTool to overwrite the original image file when writing new tag data.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @param { boolean } enabled - True/False value to enable/disable overwriting the original image file.
+   * @return { undefined }
+   */
+  setOverwriteOriginal(enabled) {
+    if (enabled) {
+      debug('setting -overwrite_original option')
+      this._opts.overwrite_original = '-overwrite_original'
+    } else {
+      this._opts.overwrite_original = ''
+    }
   }
 
   /**
@@ -308,7 +325,8 @@ export class Exiftool {
       throw new Error('No image file set yet.')
     }
     try {
-      const tags = '-overwrite_original -gps:all='
+      // const tags = '-overwrite_original -gps:all='
+      const tags = `${this._opts.overwrite_original} -gps:all=`
       const command = `${this._executable} ${tags} ${this._path}`
       const result = await cmd(command)
       result.exiftool_command = command
@@ -464,10 +482,25 @@ export class Exiftool {
    */
   getOptions() {
     debug('getOptions method entered')
+    let tmp = ''
     if (this._opts.excludeTypes === '') {
       this.setExcludeTypes()
     }
-    return Object.values(this._opts).join(' ')
+    // return Object.values(this._opts).join(' ')
+    Object.keys(this._opts).forEach((key) => {
+      debug(`checking _opts keys: _opts[${key}]: ${this._opts[key]}`)
+      if (/overwrite_original/i.test(key)) {
+        debug(`ignoring ${key}`)
+        tmp += ''
+      } else if (/tagList/i.test(key) && this._opts.tagList === null) {
+        debug(`ignoring ${key}`)
+        tmp += ''
+      } else {
+        tmp += `${this._opts[key]} `
+      }
+    })
+    debug('option string: ', tmp)
+    return tmp
   }
 
   /**
@@ -793,7 +826,8 @@ export class Exiftool {
     try {
       debug(`tagString: ${tagString}`)
       const file = `${this._path}`
-      const write = `${this._executable} ${this._opts.exiftool_config} ${tagString} ${file}`
+      // const write = `${this._executable} ${this._opts.exiftool_config} ${tagString} ${file}`
+      const write = `${this._executable} ${this._opts.exiftool_config} ${this._opts.overwrite_original} ${tagString} ${file}`
       o.command = write
       const result = await cmd(write)
       if (result.stdout.trim() === null) {
@@ -879,7 +913,7 @@ export class Exiftool {
     }
     // exiftool -all= -o %f_copy%-.4nc.%e copper.jpg
     const file = `${this._path}`
-    const strip = `${this._executable} -config ${this._exiftool_config} -all= ${file}`
+    const strip = `${this._executable} -config ${this._exiftool_config} ${this._opts.overwrite_original} -all= ${file}`
     o.command = strip
     try {
       const result = await cmd(strip)
@@ -888,7 +922,9 @@ export class Exiftool {
         throw new Error(`Failed to strip metadata from image - ${file}.`)
       }
       o.value = true
-      o.original = `${file}_original`
+      if (!this._opts.overwrite_original) {
+        o.original = `${file}_original`
+      }
     } catch (e) {
       o.value = false
       o.error = e

@@ -263,6 +263,18 @@ let result = await exiftool.stripMetadata()
 */
 ```
 
+If you would like to change the default exiftool behavior, to overwrite the original image file, call the ```setOverwriteOriginal()``` method after the ```init()``` method.
+
+```javascript
+let exiftool = await new Exiftool().init('myPhoto.jpg')
+exiftool.setOverwriteOriginal(true)
+let result await exiftool.stripMetadata()
+/*
+  This will result in one file:
+  - /path/to/myPhoto.jpg (contains no metadata in the file)
+*/
+```
+
 If GPS location data is the only metadata that needs to be stripped, the ```stripLocation()``` method can be used.  This method updates the images in place.  It can be called on either a directory of images or a single image.  This is an **Async/Await** method.
 ```javascript
 let exiftool = new Exiftool()
@@ -271,7 +283,7 @@ await exiftool.stripLocation()
 // {
 //   stdout: '    1 directories scanned\n    4 image files updated\n',
 //   stderr: '',
-//   exiftool_command: '/usr/local/bin/exiftool -overwrite_original -gps:all= /path/to/images/'
+//   exiftool_command: '/usr/local/bin/exiftool -gps:all= /path/to/images/'
 // }
 ```
 
@@ -280,7 +292,7 @@ It may be more convenient sometimes to issue a metadata query to ```exiftool``` 
 
 ```javascript
 let exiftool = new Exiftool()
-let result = await exiftool.raw('/usr/local/bin/exiftool b -jpgfromraw -w %d%f_%ue.jpg -execute -b -previewimage -w %d%f_%ue.jpg -execute -tagsfromfile @ -srcfile %d%f_%ue.jpg -overwrite_original -common_args --ext jpg /path/to/image/directory')
+let result = await exiftool.raw('/usr/local/bin/exiftool b -jpgfromraw -w %d%f_%ue.jpg -execute -b -previewimage -w %d%f_%ue.jpg -execute -tagsfromfile @ -srcfile %d%f_%ue.jpg -common_args --ext jpg /path/to/image/directory')
 console.log(result)
 ```
 
