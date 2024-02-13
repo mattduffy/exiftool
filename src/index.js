@@ -41,12 +41,13 @@ export class Exiftool {
     this._opts = {}
     this._opts.exiftool_config = `-config ${this._exiftool_config}`
     this._opts.outputFormat = '-json'
-    this._opts.gpsFormat = '-c "%.6f"'
+    this._opts.gpsFormat = '-coordFormat "%+.6f"'
     this._opts.tagList = null
     this._opts.shortcut = '-BasicShortcut'
-    this._opts.includeTagFamily = '-G'
+    // this._opts.includeTagFamily = '-G'
+    this._opts.includeTagFamily = '-groupNames'
     this._opts.compactFormat = '-s3'
-    this._opts.quiet = '-q'
+    this._opts.quiet = '-quiet'
     this._opts.excludeTypes = ''
     this._opts.binaryFormat = ''
     this._opts.structFormat = ''
@@ -150,7 +151,7 @@ export class Exiftool {
    */
   enableBinaryTagOutput(enabled) {
     if (enabled) {
-      this._opts.binaryFormat = '-b'
+      this._opts.binaryFormat = '-binary'
     } else {
       this._opts.binaryFormat = ''
     }
@@ -488,18 +489,18 @@ export class Exiftool {
     }
     // return Object.values(this._opts).join(' ')
     Object.keys(this._opts).forEach((key) => {
-      debug(`checking _opts keys: _opts[${key}]: ${this._opts[key]}`)
+      // debug(`checking _opts keys: _opts[${key}]: ${this._opts[key]}`)
       if (/overwrite_original/i.test(key)) {
         debug(`ignoring ${key}`)
         tmp += ''
       } else if (/tagList/i.test(key) && this._opts.tagList === null) {
-        debug(`ignoring ${key}`)
+        // debug(`ignoring ${key}`)
         tmp += ''
       } else {
         tmp += `${this._opts[key]} `
       }
     })
-    debug('option string: ', tmp)
+    // debug('option string: ', tmp)
     return tmp
   }
 
