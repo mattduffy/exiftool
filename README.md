@@ -57,8 +57,7 @@ let metadata5 = await exiftool.getMetadata( '/path/to/a/different/image.jpg', 'A
 The simplest use of Exiftool looks like this:
  ```javascript
 import { Exiftool } from '@mattduffy/exiftool'
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( 'images/copper.jpg' )
+let exiftool = await new Exiftool().init( 'images/copper.jpg' )
 let metadata = await exiftool.getMetadata()
  console.log( metatdata )
  [
@@ -72,7 +71,7 @@ let metadata = await exiftool.getMetadata()
     'Composite:GPSPosition': '36.195406 N, 122.208642 W'
   },
   {
-    exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -c "%.6f" -BasicShortcut -G -s3 -q --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/copper.jpg'
+    exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -coordFormat "%.6f" -BasicShortcut -groupNames -s3 -quiet --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/copper.jpg'
   },
   1
 ]
@@ -81,16 +80,35 @@ The ```exiftool_command``` property is the command composed from all the default
 
 The last element in the metadata array is the count of files that exiftool inspected and returned data for.
 
+#### Extracting Binary Tag Data
 There are several tags that store binary data, such as image thumbnails, color profile, image digests, etc..  The default state for exiftool is to not extract binary data from tags.  If you would like to extract the binary data, use the ```enableBinaryTagOutput()``` method before calling the ```getMetadata()``` method.
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( 'images/copper.jpg' )
+let exiftool = await new Exiftool().init( 'images/copper.jpg' )
 exiftool.enableBinaryTagOutput(true)
 let metadata = await exiftool.getMetadata()
+let thumbnail = metadata[0]['EXIF:ThunbnailImage']
+console.log(thumbnail)
+// 'base64:/9j/4AAQSkZJRgABAgEASABIAAD/4QKkaHR.........'
 ```
 
-XMP tags can contain complex, structured content.  [exiftool](https://exiftool.org/struct.html) is able to extract this structured content, or flatten it into a single value.  The default state for exiftool is to flatten the tag values.  If you would like to extract the complex structured data, use the ```enableXMPStructTagOutput()``` method before calling the ```getMetadata()``` method.
+#### Location Coordinate Output Formatting
+The default output format used by ```exiftool``` to report location coordinates looks like ```54 deg 59' 22.80"```.  The coordinates output format can be changed using `printf` style syntax strings. To change the location coordinate output format, use the ```setGPSCoordinatesOutputFormat(fmt)``` method before calling the ```getMetadata()``` method.  ```ExifTool``` provides a simple alias ```gps``` to set the output to typical GPS style ddd.nnnnnn notation (%.6f printf syntax, larger number will provide higer precision).  See the [exiftool -coordFormat](https://exiftool.org/exiftool_pod.html#c-FMT--coordFormat) documentation for more details on controlling coordinate output formats.
+
+```javascript
+let exiftool = await new Exiftool().init( 'images/copper.jpg' )
+let defaultLocationFormat = await exiftool.getMetadata('', null, 'EXIF:GPSLongitude', 'EXIF:GPSLongitudeRef')
+console.log(defaultLocationFormat[0]['EXIF:GPSLongitude'], defaultLocationFormat[0]['EXIF:GPSLongitudeRef'])
+// 122 deg 15' 16.51" West
+exiftool.setGPSCoordinatesOutputFormat('gps')
+// or exiftool.setGPSCoordinatesOutputFormat('+gps') for signed lat/lon values in Composite:GPS* tags
+let myLocationFormat = await exiftool.getMetadata('', null, 'EXIF:GPSLongitude', 'EXIF:GPSLongitudeRef')
+console.log(myLocationFormat[0]['EXIF:GPSLongitude'], myLocationFormat[0]['EXIF:GPSLongitudeRef'])
+// 122.254586 West
+```
+
+#### XMP Structured Tags
+XMP tags can contain complex, structured content.  ```exiftool``` is able to extract this [structured content](https://exiftool.org/struct.html), or flatten it into a single value.  The default state for exiftool is to flatten the tag values.  If you would like to extract the complex structured data, use the ```enableXMPStructTagOutput()``` method before calling the ```getMetadata()``` method.  See the [exiftool -struct](https://exiftool.org/exiftool_pod.html#struct---struct) documentation for more details on how to access nested / structured fields in XMP tags.
 
 ```javascript
 let exiftool = await new Exiftool().init( 'images/copper.jpg' )
@@ -98,6 +116,7 @@ exiftool.enableXMPStructTagOutput(true)
 let metadata = await exiftool.getMetadata()
 ```
 
+#### Excluding Files by File Type
 Because ```exiftool``` is such a well designed utility, it naturally handles metadata queries to directories containing images just as easily as to a specific image file.  It will automatically recurse through a directory and process any image file types that it knows about.  Exiftool is designed with this in mind, by setting a default list of file types to exclude, including TXT, JS, CJS, MJS, JSON, MD, HTML, and CSS.  This behavior can be altered by modifying the list of extensions to exclude with the ```setExtensionsToExclude()``` method.
 
 ```javascript
@@ -130,7 +149,7 @@ let metadata = await exiftool.getMetadata()
     'Composite:GPSPosition': '22.531478 N, 81.907106 W'
   },
   {
-    exiftool_command: '/usr/local/bin/exiftool -config /home/node_package_development/exiftool/exiftool.config -json -c "%.6f"  -BasicShortcut -G -s3 -q --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext ESLINT images/'
+    exiftool_command: '/usr/local/bin/exiftool -config /home/node_package_development/exiftool/exiftool.config -json -coordFormat "%.6f"  -BasicShortcut -groupNames -s3 -quiet --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext ESLINT images/'
   },
   3
 ]
@@ -140,8 +159,7 @@ let metadata = await exiftool.getMetadata()
 This file is not required to be present to process metadata by the original ```exiftool```, but it can help a lot with complex queries, so this Exiftool package uses it.  During the ```init()``` setup, a check is performed to see if the file is present in the root of the package directory.  If no file is found, a very basic file is created, populated with a simple shortcut called ```BasicShortcut```.  The path to this file can be overridden to use a different file.
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( '/path/to/image.jpg' )
+let exiftool = await new Exiftool().init( '/path/to/image.jpg' )
 let oldConfigPath = exiftool.getConfigPath()
 console.log( oldConfigPath )
 {
@@ -159,8 +177,7 @@ let metadata = await exiftool.getMetadata()
 The original ```exiftool``` provides a very convenient way to save arbitrarily complex metadata queries in the form of **shortcuts** saved in an ```exiftool.config``` file.  New shortcuts can be added to the ```exiftool.config``` managed by the package.  If a different ```exiftool.config``` file is used, do not try to save new shortcuts to that file with this method.  To add a new shortcut, use ```addShortcut()```.  This is an **Async/Await** method.
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( '/path/to/image.jpg' )
+let exiftool = await new Exiftool().init( '/path/to/image.jpg' )
 // Check to see if a shortcut with this name is already 
 // present in the package provided exiftool.config file
 if (!await exiftool.hasShortcut( 'MyCoolShortcut' )) {
@@ -172,8 +189,7 @@ if (!await exiftool.hasShortcut( 'MyCoolShortcut' )) {
 To change the default shortcut (BasicShortcut) to something else, that has already been added to the ```exiftool.config``` file, use the ```setShortcut()``` method.
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( '/path/to/image.jpg' )
+let exiftool = await new Exiftool().init( '/path/to/image.jpg' )
 let result = exiftool.setShortcut( 'MyCoolShortcut' )
 let metadata = await exiftool.getMetadata()
 
@@ -184,8 +200,7 @@ let metadata = await exiftool.getMetadata( '', 'MyCoolShortcut', '' )
 To remove a shortcut from the package provided ```exiftool.config``` file use the ```removeShortcut()``` method.  This is an **Async/Await** method.
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( '/path/to/image.jpg' )
+let exiftool = await new Exiftool().init( '/path/to/image.jpg' )
 // Check to see if a shortcut with this name is already 
 // present in the package provided exiftool.config file
 if (await exiftool.hasShortcut( 'MyCoolShortcut' )) {
@@ -210,8 +225,7 @@ The general format to write a new value to a tag is: ```-TAG=VALUE``` where TAG 
 This is an **Async/Await** method.
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( '/path/to/image.jpg' )
+let exiftool = await new Exiftool().init( '/path/to/image.jpg' )
 let tagToWrite = '-IPTC:Headline="Wow, Great Photo!"'
 let result1 = await exiftool.writeMetadataToTag( tagToWrite )
 console.log(result1)
@@ -225,8 +239,7 @@ console.log(result1)
 Multiple tags can be written to at once by passing an array to ```writeMetadataToTag()```.  
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( '/path/to/image.jpg' )
+let exiftool = await new Exiftool().init( '/path/to/image.jpg' )
 let tagArray = ['-IPTC:Contact="Photo McCameraguy"', '-IPTC:Keywords+=News', '-IPTC:Keywords+=Action']
 let result2 = await exiftool.writeMetadataToTag( tagArray )
 console.log(result2)
@@ -242,8 +255,7 @@ console.log(result2)
 Tags can be cleared of their metadata value.  This is essentially the same as writing an empty string to the tag.  This is slighlty different that stripping the tag entirely from the image.  Exiftool provides the ```clearMetadataFromTag()``` method to clear tag values.  This leaves the empty tag in the image file so it can be written to again if necessary.  Like the ```writeMetadataToTag()``` method, this one also takes either a string or an array of strings as a parameter.  This is an **Async/Await** method.
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init('/path/to/image.jpg')
+let exiftool = await new Exiftool().init('/path/to/image.jpg')
 let tagToClear = '-IPTC:Contact^='
 let result = await exiftool.clearMetadataFromTag(tagToClear)
 console.log(result)
@@ -253,8 +265,7 @@ console.log(result)
 It is possible to strip all of the existing metadata from an image with this Exiftool package.  The default behavior of the original ```exiftool``` utility, when writing metadata to an image is to make a backup copy of the original image file.  The new file will keep the original file name, while the backup will have **_original** appended to the name.  Exiftool maintains this default behavior.
 
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init( '/path/to/image.jpg' )
+let exiftool = await new Exiftool().init( '/path/to/image.jpg' )
 let result = await exiftool.stripMetadata()
 /*
   This will result in two files:
@@ -277,8 +288,7 @@ let result await exiftool.stripMetadata()
 
 If GPS location data is the only metadata that needs to be stripped, the ```stripLocation()``` method can be used.  This method updates the images in place.  It can be called on either a directory of images or a single image.  This is an **Async/Await** method.
 ```javascript
-let exiftool = new Exiftool()
-exiftool = await exiftool.init('/path/to/images')
+let exiftool = await new Exiftool().init('/path/to/images')
 await exiftool.stripLocation()
 // {
 //   stdout: '    1 directories scanned\n    4 image files updated\n',
@@ -292,7 +302,7 @@ It may be more convenient sometimes to issue a metadata query to ```exiftool``` 
 
 ```javascript
 let exiftool = new Exiftool()
-let result = await exiftool.raw('/usr/local/bin/exiftool b -jpgfromraw -w %d%f_%ue.jpg -execute -b -previewimage -w %d%f_%ue.jpg -execute -tagsfromfile @ -srcfile %d%f_%ue.jpg -common_args --ext jpg /path/to/image/directory')
+let result = await exiftool.raw('/usr/local/bin/exiftool b -jpgfromraw -w %d%f_%ue.jpg -execute -binary -previewimage -w %d%f_%ue.jpg -execute -tagsfromfile @ -srcfile %d%f_%ue.jpg -common_args --ext jpg /path/to/image/directory')
 console.log(result)
 ```
 
