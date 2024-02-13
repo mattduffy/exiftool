@@ -41,7 +41,6 @@ export class Exiftool {
     this._opts = {}
     this._opts.exiftool_config = `-config ${this._exiftool_config}`
     this._opts.outputFormat = '-json'
-    this._opts.gpsFormat = '-coordFormat "%+.6f"'
     this._opts.tagList = null
     this._opts.shortcut = '-BasicShortcut'
     // this._opts.includeTagFamily = '-G'
@@ -50,6 +49,8 @@ export class Exiftool {
     this._opts.quiet = '-quiet'
     this._opts.excludeTypes = ''
     this._opts.binaryFormat = ''
+    // this._opts.gpsFormat = '-coordFormat "%.6f"'
+    this._opts.gpsFormat = ''
     this._opts.structFormat = ''
     this._opts.overwrite_original = ''
     this._command = null
@@ -128,21 +129,6 @@ export class Exiftool {
   }
 
   /**
-   * Set ExifTool to extract xmp struct tag data.
-   * @summary Set ExifTool to extract xmp struct tag data.
-   * @author Matthew Duffy <mattduffy@gmail.com>
-   * @param { boolean } enabled - True/False value to enable/disable xmp struct tag extraction.
-   * @return { undefined }
-   */
-  enableXMPStructTagOutput(enabled) {
-    if (enabled) {
-      this._opts.structFormat = '-struct'
-    } else {
-      this._opts.structFormat = ''
-    }
-  }
-
-  /**
    * Set ExifTool to extract binary tag data.
    * @summary Set ExifTool to extract binary tag data.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -154,6 +140,41 @@ export class Exiftool {
       this._opts.binaryFormat = '-binary'
     } else {
       this._opts.binaryFormat = ''
+    }
+  }
+
+  /**
+   * Set ExifTool output formatting for GPS coordinate data.
+   * @summary Set ExifTool output formatting for GPS coordinate data.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @param { string } [fmt=default] - printf format string with specifiers for degrees, minutes and seconds.
+   * @see {@link https://exiftool.org/exiftool_pod.html#c-FMT--coordFormat}
+   * @return { undefined }
+   */
+  setGPSCoordinatesOutputFormat(fmt = 'default') {
+    const groups = fmt.match(/(?<signed>\+)?(?<gps>gps)/i)?.groups
+    if (fmt.toLowerCase() === 'default') {
+      // revert to default formatting
+      this._opts.coordFormat = ''
+    } else if (groups?.gps === 'gps') {
+      this._opts.coordFormat = `-coordFormat %${(groups?.signed ? '+' : '')}.6f`
+    } else {
+      this._opts.coordFormat = `-coordFormat ${fmt}`
+    }
+  }
+
+  /**
+   * Set ExifTool to extract xmp struct tag data.
+   * @summary Set ExifTool to extract xmp struct tag data.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @param { boolean } enabled - True/False value to enable/disable xmp struct tag extraction.
+   * @return { undefined }
+   */
+  enableXMPStructTagOutput(enabled) {
+    if (enabled) {
+      this._opts.structFormat = '-struct'
+    } else {
+      this._opts.structFormat = ''
     }
   }
 
