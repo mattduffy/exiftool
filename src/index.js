@@ -43,15 +43,14 @@ export class Exiftool {
     this._opts.outputFormat = '-json'
     this._opts.tagList = null
     this._opts.shortcut = '-BasicShortcut'
-    // this._opts.includeTagFamily = '-G'
     this._opts.includeTagFamily = '-groupNames'
     this._opts.compactFormat = '-s3'
     this._opts.quiet = '-quiet'
     this._opts.excludeTypes = ''
     this._opts.binaryFormat = ''
-    // this._opts.gpsFormat = '-coordFormat "%.6f"'
     this._opts.gpsFormat = ''
     this._opts.structFormat = ''
+    this._opts.useMWG = ''
     this._opts.overwrite_original = ''
     this._command = null
     this.orderExcludeTypesArray()
@@ -175,6 +174,21 @@ export class Exiftool {
       this._opts.structFormat = '-struct'
     } else {
       this._opts.structFormat = ''
+    }
+  }
+
+  /**
+   * Tell exiftool to use the Metadata Working Group (MWG) module for overlapping EXIF, IPTC, and XMP tqgs.
+   * @summary Tell exiftool to use the MWG module for overlapping tag groups.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @param { boolean } - True/false value to enable/disable mwg module.
+   * @return { undefined }
+   */
+  useMWG(enabled) {
+    if (enabled) {
+      this._opts.useMWG = '-use MWG'
+    } else {
+      this._opts.useMGW = ''
     }
   }
 

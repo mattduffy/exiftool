@@ -59,41 +59,41 @@ The simplest use of Exiftool looks like this:
 import { Exiftool } from '@mattduffy/exiftool'
 let exiftool = await new Exiftool().init( 'images/copper.jpg' )
 let metadata = await exiftool.getMetadata()
- console.log( metatdata )
- [
-  {
-    SourceFile: 'images/copper.jpg',
-    'File:FileName': 'copper.jpg',
-    'EXIF:ImageDescription': 'Copper curtain fixture',
-    'IPTC:ObjectName': 'Tiny copper curtain rod',
-    'IPTC:Caption-Abstract': 'Copper curtain fixture',
-    'IPTC:Keywords': 'copper curtain fixture',
-    'Composite:GPSPosition': '36.195406 N, 122.208642 W'
-  },
-  {
-    exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -coordFormat "%.6f" -BasicShortcut -groupNames -s3 -quiet --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/copper.jpg'
-  },
-  1
-]
+console.log( metatdata )
+// [
+//   {
+//     SourceFile: 'images/copper.jpg',
+//     'File:FileName': 'copper.jpg',
+//     'EXIF:ImageDescription': 'Copper curtain fixture',
+//     'IPTC:ObjectName': 'Tiny copper curtain rod',
+//     'IPTC:Caption-Abstract': 'Copper curtain fixture',
+//     'IPTC:Keywords': 'copper curtain fixture',
+//     'Composite:GPSPosition': `48 deg 8' 49.20" N, 17 deg 5' 52.80" E`
+//   },
+//   {
+//     exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -BasicShortcut -groupNames -s3 -quiet --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/copper.jpg'
+//   },
+//   1
+// ]
  ```
 The ```exiftool_command``` property is the command composed from all the default options, using the pre-configured BasicShortcut saved in the exiftool.config file.
 
 The last element in the metadata array is the count of files that exiftool inspected and returned data for.
 
 #### Extracting Binary Tag Data
-There are several tags that store binary data, such as image thumbnails, color profile, image digests, etc..  The default state for exiftool is to not extract binary data from tags.  If you would like to extract the binary data, use the ```enableBinaryTagOutput()``` method before calling the ```getMetadata()``` method.
+There are several tags that store binary data, such as image thumbnails, color profile, image digests, etc..  The default state for exiftool is to not extract binary data from tags.  If you would like to extract the binary data, use the ```enableBinaryTagOutput(<boolean>)``` method before calling the ```getMetadata()``` method.
 
 ```javascript
 let exiftool = await new Exiftool().init( 'images/copper.jpg' )
 exiftool.enableBinaryTagOutput(true)
 let metadata = await exiftool.getMetadata()
-let thumbnail = metadata[0]['EXIF:ThunbnailImage']
+let thumbnail = metadata[0]['EXIF:ThumbnailImage']
 console.log(thumbnail)
 // 'base64:/9j/4AAQSkZJRgABAgEASABIAAD/4QKkaHR.........'
 ```
 
 #### Location Coordinate Output Formatting
-The default output format used by ```exiftool``` to report location coordinates looks like ```54 deg 59' 22.80"```.  The coordinates output format can be changed using `printf` style syntax strings. To change the location coordinate output format, use the ```setGPSCoordinatesOutputFormat(fmt)``` method before calling the ```getMetadata()``` method.  ```ExifTool``` provides a simple alias ```gps``` to set the output to typical GPS style ddd.nnnnnn notation (%.6f printf syntax, larger number will provide higer precision).  See the [exiftool -coordFormat](https://exiftool.org/exiftool_pod.html#c-FMT--coordFormat) documentation for more details on controlling coordinate output formats.
+The default output format used by ```exiftool``` to report location coordinates looks like ```54 deg 59' 22.80"```.  The coordinates output format can be changed using `printf` style syntax strings. To change the location coordinate output format, use the ```setGPSCoordinatesOutputFormat(<printf fmt|'[+]gps'>)``` method before calling the ```getMetadata()``` method.  ```ExifTool``` provides a simple alias ```gps``` to set the output to typical GPS style ddd.nnnnnn notation (%.6f printf syntax, larger number will provide higer precision).  See the [exiftool -coordFormat](https://exiftool.org/exiftool_pod.html#c-FMT--coordFormat) documentation for more details on controlling coordinate output formats.
 
 ```javascript
 let exiftool = await new Exiftool().init( 'images/copper.jpg' )
@@ -108,12 +108,36 @@ console.log(myLocationFormat[0]['EXIF:GPSLongitude'], myLocationFormat[0]['EXIF:
 ```
 
 #### XMP Structured Tags
-XMP tags can contain complex, structured content.  ```exiftool``` is able to extract this [structured content](https://exiftool.org/struct.html), or flatten it into a single value.  The default state for exiftool is to flatten the tag values.  If you would like to extract the complex structured data, use the ```enableXMPStructTagOutput()``` method before calling the ```getMetadata()``` method.  See the [exiftool -struct](https://exiftool.org/exiftool_pod.html#struct---struct) documentation for more details on how to access nested / structured fields in XMP tags.
+XMP tags can contain complex, structured content.  ```exiftool``` is able to extract this [structured content](https://exiftool.org/struct.html), or flatten it into a single value.  The default state for exiftool is to flatten the tag values.  If you would like to extract the complex structured data, use the ```enableXMPStructTagOutput(<boolean>)``` method before calling the ```getMetadata()``` method.  See the [exiftool -struct](https://exiftool.org/exiftool_pod.html#struct---struct) documentation for more details on how to access nested / structured fields in XMP tags.
 
 ```javascript
 let exiftool = await new Exiftool().init( 'images/copper.jpg' )
 exiftool.enableXMPStructTagOutput(true)
 let metadata = await exiftool.getMetadata()
+```
+
+#### MWG Composite Tags
+The Metadata Working Group has created a recommendation for how to read and write to tags which contain values repeated in more than one tag group.  ```exiftool``` provides the ability to keep these overlapping tag values synchronized with the [MWG module](https://exiftool.org/TagNames/MWG.html).  Use the ```useMWG(<boolean>)``` method to cause ```exiftool``` to follow the MWG 2.0 recommendations.  The overlapping tags will be reducded to their 2.0 recommendation and reported assigned to the ```Composite:*``` tag group.
+
+```javascript
+let exiftool = await new Exiftool().init( 'images/IPTC-PhotometadataRef-Std2021.1.jpg' )
+exiftool.useMWG(true)
+let metadata = await exiftool.getMetadata('', '', '-MWG:*')
+console.log(metadata[0])
+// [
+//   {
+//     SourceFile: 'images/IPTC-PhotometadataRef-Std2021.1.jpg',
+//     'Composite:City': 'City (Location shown1) (ref2021.1)',
+//     'Composite:Country': 'CountryName (Location shown1) (ref2021.1)',
+//     'Composite:Copyright': 'Copyright (Notice) 2021.1 IPTC - www.iptc.org  (ref2021.1)',
+//     'Composite:Description': 'The description aka caption (ref2021.1)',
+//     'Composite:Keywords': [ 'Keyword1ref2021.1', 'Keyword2ref2021.1', 'Keyword3ref2021.1' ]
+//   },
+//   {
+//     exiftool_command: '/usr/local/bin/exiftool -config /home/node_packages/exiftool/exiftool.config -json -BasicShortcut -groupNames -s3 -quiet --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML images/IPTC-PhotometadataRef-Std2021.1.jpg'
+//   },
+//   1
+// ]
 ```
 
 #### Excluding Files by File Type
@@ -132,7 +156,7 @@ let metadata = await exiftool.getMetadata()
   {
     SourceFile: 'images/IMG_1820.heic',
     'File:FileName': 'IMG_1820.heic',
-    'Composite:GPSPosition': '22.531478 N, 81.907106 W'
+    'Composite:GPSPosition': `48 deg 8' 49.20" N, 17 deg 5' 52.80" E`
   },
   {
     SourceFile: 'images/copper.jpg',
@@ -141,12 +165,13 @@ let metadata = await exiftool.getMetadata()
     'IPTC:ObjectName': 'Tiny copper curtain rod',
     'IPTC:Caption-Abstract': 'Copper curtain fixture',
     'IPTC:Keywords': 'copper curtain fixture',
-    'Composite:GPSPosition': '36.195406 N, 122.208642 W'
+    'Composite:GPSPosition': `48 deg 8' 49.20" N, 17 deg 5' 52.80" E`
   },
   {
     SourceFile: 'images/IMG_1820.jpg',
     'File:FileName': 'IMG_1820.jpg',
-    'Composite:GPSPosition': '22.531478 N, 81.907106 W'
+    'Composite:GPSPosition': `48 deg 8' 49.20" N, 17 deg 5' 52.80" E`
+
   },
   {
     exiftool_command: '/usr/local/bin/exiftool -config /home/node_package_development/exiftool/exiftool.config -json -coordFormat "%.6f"  -BasicShortcut -groupNames -s3 -quiet --ext TXT --ext JS --ext JSON --ext MJS --ext CJS --ext MD --ext HTML --ext ESLINT images/'
@@ -274,7 +299,7 @@ let result = await exiftool.stripMetadata()
 */
 ```
 
-If you would like to change the default exiftool behavior, to overwrite the original image file, call the ```setOverwriteOriginal()``` method after the ```init()``` method.
+If you would like to change the default exiftool behavior, to overwrite the original image file, call the ```setOverwriteOriginal(<boolean>)``` method after the ```init()``` method.
 
 ```javascript
 let exiftool = await new Exiftool().init('myPhoto.jpg')
