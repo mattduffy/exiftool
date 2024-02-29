@@ -319,6 +319,67 @@ export class Exiftool {
   }
 
   /**
+   * Set the GPS location to point to a new point.
+   * @summary Set the GPS location to point to a new point.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @param { Object } coordinates - New GPS coordinates to assign to image.
+   * @param { Number } coordinates.latitude - Latitude component of location.
+   * @param { Number } coordinates.longitude - Longitude component of location.
+   * @throws { Error } Throws an error if no image is set yet.
+   * @return { Object } Object literal with stdout or stderr.
+   */
+  async setLocation(coordinates) {
+    if (!this._path) {
+      throw new Error('No image file set yet.')
+    }
+    try {
+      const lat = parseFloat(coordinates.latitude)
+      const latRef = `${(lat > 0) ? 'N' : 'S'}`
+      const lon = parseFloat(coordinates.longitude)
+      const lonRef = `${(lon > 0) ? 'E' : 'W'}`
+      const alt = 10000
+      const altRef = 0
+      const command = `${this._executable} -GPSLatitude=${lat} -GPSLatitudeRef=${latRef} -GPSLongitude=${lon} -GPSLongitudeRef=${lonRef} -GPSAltitude=${alt} -GPSAltitudeRef=${altRef} ${this._path}`
+      const result = await cmd(command)
+      result.exiftool_command = command
+      debug('set new location: %o', result)
+      return result
+    } catch (e) {
+      throw new Error(e)
+    }
+  }
+
+  /**
+   * Set the GPS location to point to null island.
+   * @summary Set the GPS location to point to null island.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @throws { Error } Throws an error if no image is set yet.
+   * @return { Object } Object literal with stdout or stderr.
+   */
+  async nullIsland() {
+    if (!this._path) {
+      throw new Error('No image file set yet.')
+    }
+    try {
+      const latitude = 0.0
+      const latRef = 'S'
+      const longitude = 0.0
+      const longRef = 'W'
+      const alt = 10000
+      const altRef = 0
+      const command = `${this._executable} -GPSLatitude=${latitude} -GPSLatitudeRef=${latRef} -GPSLongitude=${longitude} -GPSLongitudeRef=${longRef} -GPSAltitude=${alt} -GPSAltitudeRef=${altRef} ${this._path}`
+      const result = await cmd(command)
+      result.exiftool_command = command
+      debug('null island: %o', result)
+      return result
+    } catch (e) {
+      throw new Error(e)
+    }
+  }
+
+  /**
    * Set the GPS location to point nemo.
    * @summary Set the GPS location to point nemo.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -338,7 +399,6 @@ export class Exiftool {
       const alt = 10000
       const altRef = 0
       const command = `${this._executable} -GPSLatitude=${latitude} -GPSLatitudeRef=${latRef} -GPSLongitude=${longitude} -GPSLongitudeRef=${longRef} -GPSAltitude=${alt} -GPSAltitudeRef=${altRef} ${this._path}`
-      // const command = `${this._executable} Composite:GPSLatitude=${latitude}' Composite:GPSLongitude=${longitude}`
       const result = await cmd(command)
       result.exiftool_command = command
       debug('nemo: %o', result)
