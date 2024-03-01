@@ -25,6 +25,8 @@ const image1 = `${imageDir}/copper.jpg`
 const image2 = `${imageDir}/IMG_1820.jpg`
 const image3 = `${imageDir}/IMG_1820.heic`
 const image4 = `${imageDir}/strip.jpg`
+const image5 = `${imageDir}/nemo.jpeg`
+const image6 = `${imageDir}/nullisland.jpeg`
 const RealShortcut = 'BasicShortcut'
 const FakeShortcut = 'FakeShortcut'
 const NewShortcut = 'MattsNewCut'
@@ -282,5 +284,24 @@ describe('Exiftool metadata extractor', () => {
     const command = `${executable} -G -json -EXIF:ImageDescription -IPTC:ObjectName -IPTC:Keywords ${image1}`
     const result1 = await img1.raw(command)
     expect(result1[0]).toHaveProperty('IPTC:ObjectName')
+  })
+
+  test('nemo: set the gps location to point nemo', async () => {
+    // test set location to point nemo
+    const img1 = await new Exiftool().init(image5)
+    img1.setGPSCoordinatesOutputFormat('gps')
+    await img1.nemo()
+    const result1 = await img1.getMetadata('', null, '-GPS:all')
+    expect(result1[0]).toHaveProperty('EXIF:GPSLatitude')
+    expect(Number.parseFloat(result1[0]['EXIF:GPSLatitude'])).toEqual(22.319469)
+  })
+  test('null island: set the gps location to null island', async () => {
+    // test set location to null island
+    const img1 = await new Exiftool().init(image6)
+    img1.setGPSCoordinatesOutputFormat('gps')
+    await img1.nullIsland()
+    const result1 = await img1.getMetadata('', null, '-GPS:all')
+    expect(result1[0]).toHaveProperty('EXIF:GPSLatitude')
+    expect(Number.parseFloat(result1[0]['EXIF:GPSLatitude'])).toEqual(0)
   })
 })
