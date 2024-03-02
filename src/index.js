@@ -326,6 +326,10 @@ export class Exiftool {
    * @param { Object } coordinates - New GPS coordinates to assign to image.
    * @param { Number } coordinates.latitude - Latitude component of location.
    * @param { Number } coordinates.longitude - Longitude component of location.
+   * @param { String } [coordinates.city] - City name to be assigned using MWG composite method.
+   * @param { String } [coordinates.state] - State name to be assigned using MWG composite method.
+   * @param { String } [coordindates.country] - Country name to be assigned using MWG composite method.
+   * @param { String } [coordinates.location] - Location name to be assigned using MWG composite method.
    * @throws { Error } Throws an error if no image is set yet.
    * @return { Object } Object literal with stdout or stderr.
    */
@@ -334,13 +338,35 @@ export class Exiftool {
       throw new Error('No image file set yet.')
     }
     try {
-      const lat = parseFloat(coordinates.latitude)
+      const lat = parseFloat(coordinates?.latitude) ?? null
       const latRef = `${(lat > 0) ? 'N' : 'S'}`
-      const lon = parseFloat(coordinates.longitude)
+      const lon = parseFloat(coordinates?.longitude) ?? null
       const lonRef = `${(lon > 0) ? 'E' : 'W'}`
       const alt = 10000
       const altRef = 0
-      const command = `${this._executable} -GPSLatitude=${lat} -GPSLatitudeRef=${latRef} -GPSLongitude=${lon} -GPSLongitudeRef=${lonRef} -GPSAltitude=${alt} -GPSAltitudeRef=${altRef} ${this._path}`
+      let command = `${this._executable} `
+      if (lat && lon) {
+        command += `-GPSLatitude=${lat} -GPSLatitudeRef=${latRef} -GPSLongitude=${lon} -GPSLongitudeRef=${lonRef} -GPSAltitude=${alt} -GPSAltitudeRef=${altRef} `
+                + `-XMP:LocationShownGPSLatitude=${lat} -XMP:LocationShownGPSLongitude=${lon}`
+      }
+      if (coordinates?.city !== undefined) {
+        command += ` -IPTC:City='${coordinates.city}' -XMP-iptcExt:LocationShownCity='${coordinates.city}'`
+        // command += ` -MWG:City='${coordinates.city}'`
+      }
+      if (coordinates?.state !== undefined) {
+        command += ` -IPTC:Province-State='${coordinates.state}' -XMP-iptcExt:LocationShownProvinceState='${coordinates.state}'`
+        // command += ` -MWG:State='${coordinates.state}'`
+      }
+      if (coordinates?.country !== undefined) {
+        command += ` -IPTC:Country-PrimaryLocationName='${coordinates.country}' -XMP-iptcExt:LocationShownCountryName='${coordinates.country}'`
+        // command += ` -MWG:Country='${coordinates.country}'`
+      }
+      if (coordinates?.location !== undefined) {
+        command += ` -IPTC:Sub-location='${coordinates.location}' -XMP-iptcExt:LocationShownSublocation='${coordinates.location}'`
+        // command += ` -MWG:Location='${coordinates.location}'`
+      }
+      command += ` -codedcharacterset=utf8 ${this._path}`
+      debug(command)
       const result = await cmd(command)
       result.exiftool_command = command
       debug('set new location: %o', result)
@@ -422,7 +448,7 @@ export class Exiftool {
     }
     try {
       // const tags = '-overwrite_original -gps:all='
-      const tags = `${this._opts.overwrite_original} -gps:all=`
+      const tags = `${this._opts.overwrite_original} -gps:all= -XMP:LocationShown= -XMP:LocationCreated=`
       const command = `${this._executable} ${tags} ${this._path}`
       const result = await cmd(command)
       result.exiftool_command = command
