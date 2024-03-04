@@ -350,19 +350,19 @@ export class Exiftool {
                 + `-XMP:LocationShownGPSLatitude=${lat} -XMP:LocationShownGPSLongitude=${lon}`
       }
       if (coordinates?.city !== undefined) {
-        command += ` -IPTC:City='${coordinates.city}' -XMP-iptcExt:LocationShownCity='${coordinates.city}'`
+        command += ` -IPTC:City='${coordinates.city}' -XMP-iptcExt:LocationShownCity='${coordinates.city}' -XMP:City='${coordinates.city}'`
         // command += ` -MWG:City='${coordinates.city}'`
       }
       if (coordinates?.state !== undefined) {
-        command += ` -IPTC:Province-State='${coordinates.state}' -XMP-iptcExt:LocationShownProvinceState='${coordinates.state}'`
+        command += ` -IPTC:Province-State='${coordinates.state}' -XMP-iptcExt:LocationShownProvinceState='${coordinates.state}' -XMP:Country='${coordinates.state}'`
         // command += ` -MWG:State='${coordinates.state}'`
       }
       if (coordinates?.country !== undefined) {
-        command += ` -IPTC:Country-PrimaryLocationName='${coordinates.country}' -XMP-iptcExt:LocationShownCountryName='${coordinates.country}'`
+        command += ` -IPTC:Country-PrimaryLocationName='${coordinates.country}' -XMP-iptcExt:LocationShownCountryName='${coordinates.country} -XMP:Country='${coordinates.country}''`
         // command += ` -MWG:Country='${coordinates.country}'`
       }
       if (coordinates?.location !== undefined) {
-        command += ` -IPTC:Sub-location='${coordinates.location}' -XMP-iptcExt:LocationShownSublocation='${coordinates.location}'`
+        command += ` -IPTC:Sub-location='${coordinates.location}' -XMP-iptcExt:LocationShownSublocation='${coordinates.location}' -XMP:Location='${coordinates.location}'`
         // command += ` -MWG:Location='${coordinates.location}'`
       }
       command += ` -codedcharacterset=utf8 ${this._path}`
