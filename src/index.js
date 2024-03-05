@@ -329,6 +329,7 @@ export class Exiftool {
    * @param { String } [coordinates.city] - City name to be assigned using MWG composite method.
    * @param { String } [coordinates.state] - State name to be assigned using MWG composite method.
    * @param { String } [coordindates.country] - Country name to be assigned using MWG composite method.
+   * @param { String } [coordindates.countryCode] - Country code to be assigned using MWG composite method.
    * @param { String } [coordinates.location] - Location name to be assigned using MWG composite method.
    * @throws { Error } Throws an error if no image is set yet.
    * @return { Object } Object literal with stdout or stderr.
@@ -358,14 +359,18 @@ export class Exiftool {
         // command += ` -MWG:State='${coordinates.state}'`
       }
       if (coordinates?.country !== undefined) {
-        command += ` -IPTC:Country-PrimaryLocationName='${coordinates.country}' -XMP-iptcExt:LocationShownCountryName='${coordinates.country} -XMP:Country='${coordinates.country}''`
+        command += ` -IPTC:Country-PrimaryLocationName='${coordinates.country}' -XMP:LocationShownCountryName= -XMP:LocationShownCountryName='${coordinates.country}' -XMP:Country='${coordinates.country}'`
+        // command += ` -MWG:Country='${coordinates.country}'`
+      }
+      if (coordinates?.countryCode !== undefined) {
+        command += ` -IPTC:Country-PrimaryLocationCode='${coordinates.countryCode}' -XMP:LocationShownCountryCode= -XMP:LocationShownCountryCode='${coordinates.countryCode}' -XMP:CountryCode='${coordinates.countryCode}'`
         // command += ` -MWG:Country='${coordinates.country}'`
       }
       if (coordinates?.location !== undefined) {
         command += ` -IPTC:Sub-location='${coordinates.location}' -XMP-iptcExt:LocationShownSublocation='${coordinates.location}' -XMP:Location='${coordinates.location}'`
         // command += ` -MWG:Location='${coordinates.location}'`
       }
-      command += ` -codedcharacterset=utf8 ${this._path}`
+      command += ` -struct -codedcharacterset=utf8 ${this._path}`
       debug(command)
       const result = await cmd(command)
       result.exiftool_command = command
@@ -448,7 +453,8 @@ export class Exiftool {
     }
     try {
       // const tags = '-overwrite_original -gps:all='
-      const tags = `${this._opts.overwrite_original} -gps:all= -XMP:LocationShown= -XMP:LocationCreated=`
+      // const tags = `${this._opts.overwrite_original} -gps:all= -XMP:LocationShown= -XMP:LocationCreated= -XMP:LocationShownCity= -XMP:LocationShownCountryCode= -XMP:LocationShownCountryName= `
+      const tags = `${this._opts.overwrite_original} -gps:all= -XMP:LocationShown*= -XMP:LocationCreated*=  -XMP:Location= -XMP:City= -XMP:Country*= -IPTC:City= -IPTC:Province-State= -IPTC:Sub-location= -IPTC:Country*= `
       const command = `${this._executable} ${tags} ${this._path}`
       const result = await cmd(command)
       result.exiftool_command = command

@@ -276,6 +276,23 @@ console.log(result2)
 //}
 ```
 
+#### Setting a Location
+There are many tags that can contain location-related metadata, from GPS coordinates, to locality names.  Setting a location is complicated by the fact that there is more than one tag group capable of holding these valuse.  IPTC, EXIF, and XMP can all store some amount of overlapping location data.  The Metadata Working Group provides a way to keep some of these values in sync across tag groups, but doesn't include location coordinates.  To help keep location data accurate and in-sync, ```Exiftool``` provides the ```setLocation()``` method.  It takes an object literal parameter with latitude/longitude coordinates and locality names if desired.  This is an **Async/Await** method.
+
+```javascript
+let exiftool = await new Exiftool().init('/path/to/image.jpg')
+const coordinates = {
+  latitude: 40.748193,
+  longitude: -73.985062,
+  city: 'New York City',              // optional
+  state: 'New York',                  // optional
+  country: 'United States',           // optional
+  countryCode: 'USA',                 // optional
+  location: 'Empire State Building',  // optional
+}
+const result = await exiftool.setLocation(coordinates)
+```
+
 ### Clearing Metadata From a Tag
 Tags can be cleared of their metadata value.  This is essentially the same as writing an empty string to the tag.  This is slighlty different that stripping the tag entirely from the image.  Exiftool provides the ```clearMetadataFromTag()``` method to clear tag values.  This leaves the empty tag in the image file so it can be written to again if necessary.  Like the ```writeMetadataToTag()``` method, this one also takes either a string or an array of strings as a parameter.  This is an **Async/Await** method.
 
