@@ -357,7 +357,7 @@ await exiftool.stripLocation()
 ```
 
 ### Making Metadata Queries Directly
-It may be more convenient sometimes to issue a metadata query to ```exiftool``` directly rather than compose it through the class configured default options and methods.  Running complex, one-off queries recursively across a directy of images might be a good use for issuing a command composed outside of Exiftool.  This is an **Async/Await** method.
+It may be more convenient sometimes to issue a metadata query to ```exiftool``` directly rather than compose it through the class configured default options and methods.  Running complex, one-off queries recursively across a directory of images might be a good use for issuing a command composed outside of Exiftool.  This is an **Async/Await** method.
 
 ```javascript
 let exiftool = new Exiftool()
