@@ -1,7 +1,7 @@
 coverage
 TODO.md
 tmp
-src/exiftool.config
+src/exiftool.config*
 *.config.bk
 *.config.test
 __tests__/images/gps

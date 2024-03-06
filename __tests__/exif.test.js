@@ -304,4 +304,15 @@ describe('Exiftool metadata extractor', () => {
     expect(result1[0]).toHaveProperty('EXIF:GPSLatitude')
     expect(Number.parseFloat(result1[0]['EXIF:GPSLatitude'])).toEqual(0)
   })
+
+  test('exiftool command not found', async () => {
+    const exiftoolNotFound = new Exiftool(null, true)
+    try {
+      await exiftoolNotFound.init(image1)
+    } catch (e) {
+      expect(e.message).toEqual(expect.stringMatching(/attention/i))
+    }
+    const exiftool = await new Exiftool().init(image1)
+    expect(exiftool._executable).toEqual(expect.stringMatching(/.+\/exiftool?/))
+  })
 })

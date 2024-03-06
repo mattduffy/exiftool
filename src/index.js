@@ -26,9 +26,11 @@ export class Exiftool {
   /**
    * Create an instance of the exiftool wrapper.
    * @param { string } imagePath - String value of file path to an image file or directory of images.
+   * @param { boolean } [test] - Set to true to test outcome of exiftool command not found.
    */
-  constructor(imagePath) {
+  constructor(imagePath, test) {
     debug('constructor method entered')
+    this._test = test ?? false
     this._imgDir = imagePath ?? null
     this._path = imagePath ?? null
     this._isDirectory = null
@@ -66,6 +68,20 @@ export class Exiftool {
    */
   async init(imagePath) {
     debug('init method entered')
+    try {
+      if (this._executable === null) {
+        this._executable = await this.which()
+        // const result = await this.which()
+        // this._executable = result.value
+        this._version = await this.version()
+      }
+      debug('setting the command string')
+      this.setCommand()
+    } catch (e) {
+      // debug('could not find exiftool command')
+      // debug(e)
+      throw new Error('ATTENTION!!! exiftool IS NOT INSTALLED.  You can get exiftool at https://exiftool.org/install.html', { cause: e })
+    }
     if ((imagePath === '' || typeof imagePath === 'undefined') && this._path === null) {
       debug('Param: path - was undefined.')
       debug(`Instance property: path - ${this._path}`)
@@ -93,19 +109,6 @@ export class Exiftool {
       }
     } catch (e) {
       debug('could not create exiftool.config file')
-      debug(e)
-    }
-    try {
-      if (this._executable === null) {
-        this._executable = await this.which()
-        // const result = await this.which()
-        // this._executable = result.value
-        this._version = await this.version()
-      }
-      debug('setting the command string')
-      this.setCommand()
-    } catch (e) {
-      debug('could not find exiftool command')
       debug(e)
     }
     return this
@@ -297,7 +300,10 @@ export class Exiftool {
     const o = { value: null, error: null }
     const stub = `%Image::ExifTool::UserDefined::Shortcuts = (
     BasicShortcut => ['file:Directory','file:FileName','EXIF:CreateDate','file:MIMEType','exif:Make','exif:Model','exif:ImageDescription','iptc:ObjectName','iptc:Caption-Abstract','iptc:Keywords','Composite:GPSPosition'],
-    Location => ['EXIF:GPSLatitude', 'EXIF:GPSLongitude', 'EXIF:GPSAltitude', 'EXIF:GPSLatitudeRef', 'EXIF:GPSLongitudeRef', 'EXIF:GPSAltitudeRef'],
+    Location => ['EXIF:GPSLatitudeRef', 'EXIF:GPSLatitude', 'EXIF:GPSLongitudeRef', 'EXIF:GPSLongitude', 'EXIF:GPSAltitudeRef', 
+    'EXIF:GPSSpeedRef', 'EXIF:GPSAltitude', 'EXIF:GPSSpeed', 'EXIF:GPSImgDirectionRef', 'EXIF:GPSImgDirection', 'EXIF:GPSDestBearingRef', 'EXIF:GPSDestBearing', 
+    'EXIF:GPSHPositioningError', 'Composite:GPSAltitude', 'Composite:GPSLatitude', 'Composite:GPSLongitude', 'Composite:GPSPosition', 'XMP:Location*', 'XMP:LocationCreatedGPSLatitude',
+  'XMP:LocationCreatedGPSLongitude', 'XMP:LocationShownGPSLatitude', 'XMP:LocationShownGPSLongitude'],
     StripGPS => ['gps:all='],
 );`
     // let fileName = `${this._cwd}/exiftool.config`
@@ -478,7 +484,10 @@ export class Exiftool {
     }
     let which
     try {
-      which = await cmd('which exiftool')
+      // test command not founc condition
+      const exiftool = (!this?._test) ? 'exiftool' : 'exitfool'
+      // which = await cmd('which exiftool')
+      which = await cmd(`which ${exiftool}`)
       if (which.stdout.slice(-1) === '\n') {
         which = which.stdout.slice(0, -1)
         this._executable = which

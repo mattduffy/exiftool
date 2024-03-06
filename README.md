@@ -80,6 +80,23 @@ The ```exiftool_command``` property is the command composed from all the default
 
 The last element in the metadata array is the count of files that exiftool inspected and returned data for.
 
+#### Command Not Found!
+
+This node.js package can only function if [exiftool](https://exiftool.org/install.html) is installed.  This node.js package DOES NOT install the necessary, underlying ```exiftool```.  If ```exiftool``` is not installed, or is not available in the system path, it will throw an error and interrupt execution.
+
+```javascript
+let exiftool = await new Exiftool().init( 'images/copper.jpg' )
+Error: ATTENTION!!! exiftool IS NOT INSTALLED.  You can get exiftool here: https://exiftool.org/install.html
+    at Exiftool.init (file:///www/exiftool/src/index.js:83:13)
+    at async REPL17:1:38 {
+  [cause]: Error: Exiftool not found?
+      at Exiftool.which (file:///www/exiftool/src/index.js:498:13)
+      at async Exiftool.init (file:///www/exiftool/src/index.js:73:28)
+      at async REPL17:1:38
+      at async node:repl:646:29 {
+    [cause]: Error: Command failed: which exitfool
+```
+
 #### Extracting Binary Tag Data
 There are several tags that store binary data, such as image thumbnails, color profile, image digests, etc..  The default state for exiftool is to not extract binary data from tags.  If you would like to extract the binary data, use the ```enableBinaryTagOutput(<boolean>)``` method before calling the ```getMetadata()``` method.
 
