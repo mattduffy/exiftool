@@ -82,7 +82,7 @@ The last element in the metadata array is the count of files that exiftool inspe
 
 #### Command Not Found!
 
-This node.js package can only function if [exiftool](https://exiftool.org/install.html) is installed.  This node.js package DOES NOT install the necessary, underlying ```exiftool```.  If ```exiftool``` is not installed, or is not available in the system path, it will throw an error and interrupt execution.
+This node.js package can only function if [exiftool](https://exiftool.org/install.html) is installed.  This node.js package DOES NOT install the necessary, underlying ```exiftool``` executable.  If ```exiftool``` is not installed, or is not available in the system path, it will throw an error and interrupt execution.
 
 ```javascript
 let exiftool = await new Exiftool().init( 'images/copper.jpg' )
@@ -107,6 +107,32 @@ let metadata = await exiftool.getMetadata()
 let thumbnail = metadata[0]['EXIF:ThumbnailImage']
 console.log(thumbnail)
 // 'base64:/9j/4AAQSkZJRgABAgEASABIAAD/4QKkaHR.........'
+```
+
+#### Metadata Output Format
+The default output format when issuing metadata queries is JSON.  You can change the output format to XML by calling the ```setOutputFormat(<xml|json>)``` method before calling the ```getMetadata()``` method.
+
+```javascript
+let exiftool = await new Exiftool().init( 'images/copper.jpg' )
+exiftool.setOutputFormat('xml')
+let xml = await exiftool.getMetadata()
+console.log(xml)
+// [
+//  "<?xml version='1.0' encoding='UTF-8'?>
+//  <rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+//    <rdf:Description rdf:about='__tests__/images/copper.jpg'
+//      xmlns:et='http://ns.exiftool.org/1.0/' et:toolkit='Image::ExifTool 12.68'
+//      xmlns:System='http://ns.exiftool.org/File/System/1.0/'
+//      xmlns:File='http://ns.exiftool.org/File/1.0/'>
+//     <System:FileSize>3.3 MB</System:FileSize>
+//     <File:FileType>JPEG</File:FileType>
+//     ...
+//     <File:YCbCrSubSampling>YCbCr4:2:0 (2 2)</File:YCbCrSubSampling>
+//    </rdf:Description>
+//  </rdf:RDF>",
+//  {exiftool_command: '/usr/local/bin/exiftool -config exiftool.config -json -xmp:all  -groupNames -s3 -quiet --ext cjs --ext css --ext html --ext js --ext json --ext md --ext mjs --ext txt images/copper.jpg'},
+//  {format: 'xml'},
+// ]
 ```
 
 #### Location Coordinate Output Formatting
