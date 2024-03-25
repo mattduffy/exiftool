@@ -146,6 +146,27 @@ export class Exiftool {
   }
 
   /**
+   * Set ExifTool output format.
+   * @summary Set Exiftool output format.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @param { string } [fmt='json'] - Output format to set, default is JSON, but can be XML.
+   * @return { Boolean } - Return True if new format is set, False otherwise.
+   */
+  setOutputFormat(fmt = 'json') {
+    let newFormat
+    const match = fmt.match(/(?<format>xml|json)/i)
+    if (match || match.groups?.format) {
+      newFormat = (match.groups.format === 'xml') ? '-xmlFormat' : '-json'
+      this._opts.outputFormat = newFormat
+      debug(`Output format is set to ${this._opts.outputFormat}`)
+      this.setCommand()
+      return true
+    }
+    debug(`Output format ${fmt} not supported.`)
+    return false
+  }
+
+  /**
    * Set ExifTool output formatting for GPS coordinate data.
    * @summary Set ExifTool output formatting for GPS coordinate data.
    * @author Matthew Duffy <mattduffy@gmail.com>
@@ -915,10 +936,23 @@ export class Exiftool {
       if (metadata.stderr !== '') {
         throw new Error(metadata.stderr)
       }
-      metadata = JSON.parse(metadata.stdout)
-      const count = metadata.length
-      metadata.push({ exiftool_command: this._command })
-      metadata.push(count)
+      const match = this._opts.outputFormat.match(/(?<format>xml.*|json)/i)
+      if (match && match.groups.format === 'json') {
+        metadata = JSON.parse(metadata.stdout)
+        const count = metadata.length
+        metadata.push({ exiftool_command: this._command })
+        metadata.push({ format: 'json' })
+        metadata.push(count)
+      } else if (match && match.groups.format === 'xmlFormat') {
+        const tmp = []
+        tmp.push(metadata.stdout)
+        tmp.push({ exiftool_command: this._command })
+        tmp.push({ format: 'xml' })
+        metadata = tmp
+        delete metadata.stdout
+      } else {
+        metadata = metadata.stdout
+      }
       debug(metadata)
       return metadata
     } catch (e) {
