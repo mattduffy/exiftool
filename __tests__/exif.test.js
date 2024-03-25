@@ -27,6 +27,7 @@ const image3 = `${imageDir}/IMG_1820.heic`
 const image4 = `${imageDir}/strip.jpg`
 const image5 = `${imageDir}/nemo.jpeg`
 const image6 = `${imageDir}/nullisland.jpeg`
+const image7 = `${imageDir}/IPTC-PhotometadataRef-Std2021.1.jpg`
 const RealShortcut = 'BasicShortcut'
 const FakeShortcut = 'FakeShortcut'
 const NewShortcut = 'MattsNewCut'
@@ -303,6 +304,15 @@ describe('Exiftool metadata extractor', () => {
     const result1 = await img1.getMetadata('', null, '-GPS:all')
     expect(result1[0]).toHaveProperty('EXIF:GPSLatitude')
     expect(Number.parseFloat(result1[0]['EXIF:GPSLatitude'])).toEqual(0)
+  })
+
+  test('set output format to xml', async () => {
+    const img7 = await new Exiftool().init(image7)
+    const shouldBeTrue = img7.setOutputFormat('xml')
+    expect(shouldBeTrue).toBeTruthy()
+    const result1 = await img7.getMetadata('', null, '-File:all')
+    expect(result1[0].slice(0, 5)).toMatch('<?xml')
+    expect(result1[result1.length - 1].format).toEqual('xml')
   })
 
   test('exiftool command not found', async () => {
