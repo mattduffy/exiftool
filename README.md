@@ -130,8 +130,10 @@ console.log(xml)
 //     <File:YCbCrSubSampling>YCbCr4:2:0 (2 2)</File:YCbCrSubSampling>
 //    </rdf:Description>
 //  </rdf:RDF>",
-//  {exiftool_command: '/usr/local/bin/exiftool -config exiftool.config -json -xmp:all  -groupNames -s3 -quiet --ext cjs --ext css --ext html --ext js --ext json --ext md --ext mjs --ext txt images/copper.jpg'},
-//  {format: 'xml'},
+//  { raw: "<?xml version='1.0' encoding='UTF-8'?>..." },
+//  { format: 'xml' },
+//  { exiftool_command: '/usr/local/bin/exiftool -config exiftool.config -json -xmp:all  -groupNames -s3 -quiet --ext cjs --ext css --ext html --ext js --ext json --ext md --ext mjs --ext txt images/copper.jpg'},
+//  1,
 // ]
 ```
 

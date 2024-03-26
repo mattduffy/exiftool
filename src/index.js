@@ -10,6 +10,7 @@ import { stat } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import { exec } from 'node:child_process'
 import Debug from 'debug'
+import * as fxp from 'fast-xml-parser'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -932,6 +933,7 @@ export class Exiftool {
     }
     debug(this._command)
     try {
+      let count
       let metadata = await cmd(this._command)
       if (metadata.stderr !== '') {
         throw new Error(metadata.stderr)
@@ -939,15 +941,21 @@ export class Exiftool {
       const match = this._opts.outputFormat.match(/(?<format>xml.*|json)/i)
       if (match && match.groups.format === 'json') {
         metadata = JSON.parse(metadata.stdout)
-        const count = metadata.length
+        count = metadata.length
         metadata.push({ exiftool_command: this._command })
         metadata.push({ format: 'json' })
         metadata.push(count)
       } else if (match && match.groups.format === 'xmlFormat') {
         const tmp = []
-        tmp.push(metadata.stdout)
-        tmp.push({ exiftool_command: this._command })
+        // const xml = libxml.parseXmlString(metadata.stdout)
+        const parser = new fxp.XMLParser()
+        const xml = parser.parse(metadata.stdout)
+        debug(xml)
+        tmp.push(xml)
+        tmp.push({ raw: metadata.stdout })
         tmp.push({ format: 'xml' })
+        tmp.push({ exiftool_command: this._command })
+        tmp.push(count)
         metadata = tmp
         delete metadata.stdout
       } else {

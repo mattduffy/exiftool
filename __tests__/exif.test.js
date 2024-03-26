@@ -27,7 +27,8 @@ const image3 = `${imageDir}/IMG_1820.heic`
 const image4 = `${imageDir}/strip.jpg`
 const image5 = `${imageDir}/nemo.jpeg`
 const image6 = `${imageDir}/nullisland.jpeg`
-const image7 = `${imageDir}/IPTC-PhotometadataRef-Std2021.1.jpg`
+// const image7 = `${imageDir}/IPTC-PhotometadataRef-Std2021.1.jpg`
+const image8 = `${imageDir}/Murph_mild_haze.jpg`
 const RealShortcut = 'BasicShortcut'
 const FakeShortcut = 'FakeShortcut'
 const NewShortcut = 'MattsNewCut'
@@ -307,12 +308,12 @@ describe('Exiftool metadata extractor', () => {
   })
 
   test('set output format to xml', async () => {
-    const img7 = await new Exiftool().init(image7)
-    const shouldBeTrue = img7.setOutputFormat('xml')
+    const img8 = await new Exiftool().init(image8)
+    const shouldBeTrue = img8.setOutputFormat('xml')
     expect(shouldBeTrue).toBeTruthy()
-    const result1 = await img7.getMetadata('', null, '-File:all')
-    expect(result1[0].slice(0, 5)).toMatch('<?xml')
-    expect(result1[result1.length - 1].format).toEqual('xml')
+    const result1 = await img8.getMetadata('', null, '-File:all')
+    expect(result1[1].raw.slice(0, 5)).toMatch('<?xml')
+    expect(result1[result1.length - 3].format).toEqual('xml')
   })
 
   test('exiftool command not found', async () => {
