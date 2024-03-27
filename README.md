@@ -152,6 +152,21 @@ console.log(myLocationFormat[0]['EXIF:GPSLongitude'], myLocationFormat[0]['EXIF:
 // 122.254586 West
 ```
 
+#### Raw XMP Packet Data
+To extract the full Adobe XMP packet, if it exists within an image file, you can use the ```getXmpPacket()``` method.  This method will extract only the xmp metadata.  The metadata will be a serialized string version of the raw XMP:RDF packet object.  This is an **Async/Await** method. 
+
+```javascript
+let exiftool = await new Exiftool().init( 'images/copper.jpg' )
+let xmpPacket = await exiftool.getXmpPacket()
+console.log(xmpPacket)
+// {
+//    exiftool_command: '/usr/local/bin/exiftool -config /app/src/exiftool.config -xmp -b /www/images/copper.jpg',
+//    xmp: '<?xpacket?><?xpacket?><x:xmpmeta><rdf:RDF><rdf:Description><xmpMM:...
+//    ...
+//    </rdf:Description></rdf:RDF></x:xmpmeta>'
+// }
+```
+
 #### XMP Structured Tags
 XMP tags can contain complex, structured content.  ```exiftool``` is able to extract this [structured content](https://exiftool.org/struct.html), or flatten it into a single value.  The default state for exiftool is to flatten the tag values.  If you would like to extract the complex structured data, use the ```enableXMPStructTagOutput(<boolean>)``` method before calling the ```getMetadata()``` method.  See the [exiftool -struct](https://exiftool.org/exiftool_pod.html#struct---struct) documentation for more details on how to access nested / structured fields in XMP tags.
 

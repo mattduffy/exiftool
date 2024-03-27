@@ -898,7 +898,7 @@ export class Exiftool {
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
    * @throws Will throw an error if -all= tag is included in the tagsToExtract parameter.
-   * @throws Will throw an errof if exiftool returns a fatal error via stderr.
+   * @throws Will throw an error if exiftool returns a fatal error via stderr.
    * @param { string } [ fileOrDir=null ] - The string path to a file or directory for exiftool to use.
    * @param { string } [ shortcut=null ] - A string containing the name of an existing shortcut for exiftool to use.
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
@@ -947,7 +947,6 @@ export class Exiftool {
         metadata.push(count)
       } else if (match && match.groups.format === 'xmlFormat') {
         const tmp = []
-        // const xml = libxml.parseXmlString(metadata.stdout)
         const parser = new fxp.XMLParser()
         const xml = parser.parse(metadata.stdout)
         debug(xml)
@@ -957,12 +956,41 @@ export class Exiftool {
         tmp.push({ exiftool_command: this._command })
         tmp.push(count)
         metadata = tmp
-        delete metadata.stdout
       } else {
         metadata = metadata.stdout
       }
       debug(metadata)
       return metadata
+    } catch (e) {
+      debug(e)
+      e.exiftool_command = this._command
+      return e
+    }
+  }
+
+  /**
+   * Extract the raw XMP data as xmp-rdf packet.
+   * @summary Extract the raw XMP data as xmp-rdf packet.
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
+   * @throws Will throw an error if exiftool returns a fatal error via stderr.
+   * @return { (Object|Error) } JSON object literal of metadata or throws an Error if failed.
+   */
+  async getXmpPacket() {
+    debug('getXmpPacket method entered.')
+    try {
+      const command = `${this._executable} ${this._opts.exiftool_config} -xmp -b ${this._path}`
+      const packet = await cmd(command)
+      if (packet.stderr !== '') {
+        throw new Error(packet.stderr)
+      }
+      packet.exiftool_command = command
+      const parser = new fxp.XMLParser()
+      const builder = new fxp.XMLBuilder()
+      packet.xmp = builder.build(parser.parse(packet.stdout))
+      delete packet.stdout
+      delete packet.stderr
+      return packet
     } catch (e) {
       debug(e)
       e.exiftool_command = this._command
@@ -978,7 +1006,7 @@ export class Exiftool {
    * @throws Throws an error if there is no valid path to an image file.
    * @throws Throws an error if the current path is to a directory instead of a file.
    * @throws Throws an error if the expected parameter is missing or of the wrong type.
-   * @throws Throws an errof if exiftool returns a fatal error via stderr.
+   * @throws Throws an error if exiftool returns a fatal error via stderr.
    * @param { string|Array<string> } metadataToWrite - A string value with tag name and new value or an array of tag strings.
    * @return { Object|Error } Returns an object literal with success or error messages, or throws an exception if no image given.
    */
@@ -1029,7 +1057,7 @@ export class Exiftool {
    * @throws Throws an error if there is no valid path to an image file.
    * @throws Throws an error if the current path is to a directory instead of a file.
    * @throws Throws an error if the expected parameter is missing or of the wrong type.
-   * @throws Throws an errof if exiftool returns a fatal error via stderr.
+   * @throws Throws an error if exiftool returns a fatal error via stderr.
    * @param { string|Array<string> } tagsToClear - A string value with tag name or an array of tag names.
    * @return { Object|Error } Returns an object literal with success or error messages, or throws an exception if no image given.
    */
