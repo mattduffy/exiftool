@@ -985,9 +985,10 @@ export class Exiftool {
         throw new Error(packet.stderr)
       }
       packet.exiftool_command = command
-      const parser = new fxp.XMLParser()
-      const builder = new fxp.XMLBuilder()
-      packet.xmp = builder.build(parser.parse(packet.stdout))
+      // const parser = new fxp.XMLParser()
+      // const builder = new fxp.XMLBuilder()
+      // packet.xmp = builder.build(parser.parse(packet.stdout))
+      packet.xmp = packet.stdout
       delete packet.stdout
       delete packet.stderr
       return packet
