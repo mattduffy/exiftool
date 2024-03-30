@@ -1167,11 +1167,17 @@ export class Exiftool {
     command += ` ${query}`
     try {
       let result = await cmd(command)
-      if (result.stderr !== '') {
-        throw new Error(`exiftool failed to exectue query: ${query}`)
-      }
-      result = JSON.parse(result.stdout.trim())
+      // if (result.stderr !== '') {
+      //   const cause = new Error(result.stderr)
+      //   throw new Error(`exiftool failed to exectue query: ${query}`, { cause })
+      // }
+      // result = JSON.parse(result.stdout.trim())
+      // result.push({ exiftool_command: command })
+      const tmp = JSON.parse(result.stdout.trim())
+      const tmperr = result.stderr
+      result = tmp
       result.push({ exiftool_command: command })
+      result.push({ stderr: tmperr })
       debug(result)
       return result
     } catch (e) {
