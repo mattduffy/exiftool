@@ -319,7 +319,9 @@ describe('Exiftool metadata extractor', () => {
   test('get xmp packet', async () => {
     const img8 = await new Exiftool().init(image8)
     const packet = await img8.getXmpPacket()
-    expect(packet.xmp).toMatch(/^<\?xpacket\?>.*/)
+    const pattern = /^<\?xpacket .*\?>.*/
+    expect(packet.xmp).toMatch(pattern)
+    // expect(packet.xmp).toMatch(/^<\?xpacket\s?(?<begin>begin=.*)?\s?(?<id>id=.*)?(.*)?>.*(?<end><\?xpacket.*>)/)
   })
 
   test('exiftool command not found', async () => {
