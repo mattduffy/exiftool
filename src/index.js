@@ -144,6 +144,7 @@ export class Exiftool {
     } else {
       this._opts.binaryFormat = ''
     }
+    this.setCommand()
   }
 
   /**
@@ -900,11 +901,11 @@ export class Exiftool {
    * @throws Will throw an error if -all= tag is included in the tagsToExtract parameter.
    * @throws Will throw an error if exiftool returns a fatal error via stderr.
    * @param { string } [ fileOrDir=null ] - The string path to a file or directory for exiftool to use.
-   * @param { string } [ shortcut=null ] - A string containing the name of an existing shortcut for exiftool to use.
+   * @param { string } [ shortcut=''] - A string containing the name of an existing shortcut for exiftool to use.
    * @param { string } [ tagsToExtract=null ] - A string of one or more metadata tags to pass to exiftool.
    * @return { (Object|Error) } JSON object literal of metadata or throws an Error if failed.
    */
-  async getMetadata(fileOrDir, shortcut, ...tagsToExtract) {
+  async getMetadata(fileOrDir = null, shortcut = '', ...tagsToExtract) {
     debug('getMetadata method entered')
     if (fileOrDir !== null && fileOrDir !== '') {
       this.setPath(fileOrDir)
@@ -916,8 +917,9 @@ export class Exiftool {
     } else if (shortcut === null || shortcut === false) {
       this.clearShortcut()
     } else {
-    // if (shortcut === '') {
       // leave default BasicShortcut in place
+      // this.clearShortcut()
+      debug(`leaving any currenly set shortcut in place: ${this._opts.shortcut}`)
     }
     if (tagsToExtract.length > 0) {
       if (tagsToExtract.includes('-all= ')) {
