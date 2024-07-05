@@ -32,7 +32,7 @@ At this point, Exiftool is ready to extract metadata from the image ```myNicePho
 There are a few options to choose what metadata is extracted from the file:
 - using default options, including a pre-configured shortcut
 - override the default shortcut name with a different one (already added to the exiftool.config file)
-- adding additional [Exiftool Tags](https://exiftool.org/TagNames/index.html) to extract beyound those included in the default shortcut
+- adding additional [Exiftool Tags](https://exiftool.org/TagNames/index.html) to extract beyond those included in the default shortcut
 
 ```javascript
 // Using just the default options.
@@ -177,7 +177,7 @@ let metadata = await exiftool.getMetadata()
 ```
 
 #### MWG Composite Tags
-The Metadata Working Group has created a recommendation for how to read and write to tags which contain values repeated in more than one tag group.  ```exiftool``` provides the ability to keep these overlapping tag values synchronized with the [MWG module](https://exiftool.org/TagNames/MWG.html).  Use the ```useMWG(<boolean>)``` method to cause ```exiftool``` to follow the MWG 2.0 recommendations.  The overlapping tags will be reducded to their 2.0 recommendation and reported assigned to the ```Composite:*``` tag group.
+The Metadata Working Group has created a recommendation for how to read and write to tags which contain values repeated in more than one tag group.  ```exiftool``` provides the ability to keep these overlapping tag values synchronized with the [MWG module](https://exiftool.org/TagNames/MWG.html).  Use the ```useMWG(<boolean>)``` method to cause ```exiftool``` to follow the MWG 2.0 recommendations.  The overlapping tags will be reduced to their 2.0 recommendation and reported assigned to the ```Composite:*``` tag group.
 
 ```javascript
 let exiftool = await new Exiftool().init( 'images/IPTC-PhotometadataRef-Std2021.1.jpg' )
