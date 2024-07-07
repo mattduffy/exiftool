@@ -37,7 +37,7 @@ export class Exiftool {
     this._isDirectory = null
     this._fileStats = null
     this._cwd = __dirname
-    this._exiftool_config = `${this._cwd}/exiftool.config`
+    this._exiftool_config = `"${this._cwd}/exiftool.config"`
     this._extensionsToExclude = ['txt', 'js', 'json', 'mjs', 'cjs', 'md', 'html', 'css']
     this._executable = null
     this._version = null
@@ -100,7 +100,7 @@ export class Exiftool {
         debug('exiftool.config file exists')
       } else {
         debug('missing exiftool.config file')
-        debug('attempting to create empty exiftool.config file')
+        debug('attempting to create basic exiftool.config file')
         const result = this.createExiftoolConfigFile()
         if (!result.value && result.error) {
           debug('failed to create new exiftool.config file')
@@ -235,20 +235,24 @@ export class Exiftool {
     }
     let pathToImage
     if (Array.isArray(imagePath)) {
-      let temp = imagePath.map((i) => path.resolve('.', i))
+      let temp = imagePath.map((i) => `"${path.resolve('.', i)}"`)
       temp = temp.join(' ')
       debug(`imagePath passed as an Array.  Resolving and concatting the paths into a single string: ${temp}`)
       pathToImage = temp
     } else {
-      pathToImage = path.resolve('.', imagePath)
+      pathToImage = `"${path.resolve('.', imagePath)}"`
     }
-    if (!/^\//.test(pathToImage)) {
+    if (!/^(")?\//.test(pathToImage)) {
       // the path parameter must be a fully qualified file path, starting with /
       throw new Error('The file system path to image must be a fully qualified path, starting from root /.')
     }
     try {
       this._path = pathToImage
-      this._fileStats = await stat(pathToImage)
+      if (/^"/.test(pathToImage)) {
+        this._fileStats = await stat(pathToImage.slice(1, -1))
+      } else {
+        this._fileStats = await stat(pathToImage)
+      }
       this._isDirectory = this._fileStats.isDirectory()
       if (this._fileStats.isDirectory()) {
         this._imgDir = pathToImage
@@ -296,9 +300,14 @@ export class Exiftool {
     debug('>')
     let exists = false
     const file = this._exiftool_config
+    let stats
     try {
       debug('>>')
-      const stats = await stat(file)
+      if (/^"/.test(file)) {
+        stats = await stat(file.slice(1, -1))
+      } else {
+        stats = await stat(file)
+      }
       debug('>>>')
       debug(stats)
       exists = true
@@ -679,9 +688,14 @@ export class Exiftool {
     } else {
       try {
         // const stats = await stat(newConfigPath)
-        await stat(newConfigPath)
+        if (/^"/.test(newConfigPath)) {
+          await stat(newConfigPath.slice(1, -1))
+          this._exiftool_config = newConfigPath
+        } else {
+          await stat(newConfigPath)
+          this._exiftool_config = `"${newConfigPath}"`
+        }
         o.value = true
-        this._exiftool_config = newConfigPath
         this._opts.exiftool_config = `-config ${this._exiftool_config}`
         this.setCommand()
       } catch (e) {
@@ -704,6 +718,8 @@ export class Exiftool {
     const o = { value: null, error: null }
     if (this._exiftool_config === '' || this._exiftool_config === null || typeof this._exiftool_config === 'undefined') {
       o.error = 'No path set for the exiftool.config file.'
+    } else if (/^"/.test(this._exiftool_config)) {
+      o.value = this._exiftool_config.slice(1, -1)
     } else {
       o.value = this._exiftool_config
     }
