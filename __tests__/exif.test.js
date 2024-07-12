@@ -5,7 +5,12 @@
  */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { rm } from 'node:fs/promises'
+import {
+  copyFile,
+  mkdir,
+  rm,
+  stat,
+} from 'node:fs/promises'
 import Debug from 'debug'
 /* eslint-disable import/extensions */
 import { Exiftool } from '../src/index.js'
@@ -13,7 +18,9 @@ import { path as executable } from '../src/which.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const debug = Debug('exiftool:metadata')
+Debug.log = console.log.bind(console)
+const debug = Debug('exiftool:Test')
+const error = debug.extend('ERROR')
 debug(`exif path: ${executable}`)
 debug(Exiftool)
 
@@ -29,7 +36,8 @@ const image5 = `${imageDir}/nemo.jpeg`
 const image6 = `${imageDir}/nullisland.jpeg`
 // const image7 = `${imageDir}/IPTC-PhotometadataRef-Std2021.1.jpg`
 const image8 = `${imageDir}/Murph_mild_haze.jpg`
-const spaceyPath = `${__dirname}/SNAPCHAT MEMORIES/Murph_mild_haze.jpg`
+const spacey = 'SNAPCHAT MEMORIES'
+const spaceyPath = `${__dirname}/${spacey}/Murph_mild_haze.jpg`
 const RealShortcut = 'BasicShortcut'
 const FakeShortcut = 'FakeShortcut'
 const NewShortcut = 'MattsNewCut'
@@ -43,16 +51,54 @@ debug(`image3: ${image3}`)
 debug(`image4: ${image4}`)
 
 /* eslint-disable no-undef */
+beforeAll(async () => {
+  const log = debug.extend('before-all')
+  const err = error.extend('before-all')
+  try {
+    const spaceyDirPath = path.resolve(__dirname, spacey)
+    log(`Creating test path with spaces: ${spaceyDirPath}`)
+    await mkdir(spaceyDirPath, { recursive: true })
+    log(`${spaceyDirPath} exists? ${(await stat(spaceyDirPath)).isDirectory()}`)
+    const spaceyDirPathFile = path.resolve(spaceyDirPath, 'Murph_mild_haze.jpg')
+    log(spaceyDirPathFile)
+    await copyFile(image8, spaceyDirPathFile)
+    const spaceyConfigPath = path.resolve(__dirname, 'setConfigPathTest', spacey)
+    log(spaceyConfigPath)
+    await mkdir(spaceyConfigPath, { recursive: true })
+    const src = path.resolve(__dirname, 'setConfigPathTest', 'exiftool.config')
+    const dest = path.resolve(spaceyConfigPath, 'exiftool.config')
+    log(`copy ${src} -> ${dest}`)
+    await copyFile(src, dest)
+  } catch (e) {
+    err(e)
+  }
+})
+
 afterAll(async () => {
   const log = debug.extend('after-all')
+  const err = error.extend('after-all')
+  const dir = __dirname.split('/')
+  const file = `${dir.slice(0, dir.length - 1).join('/')}/exiftool.config`
+  log(dir)
   try {
-    const dir = __dirname.split('/')
-    const file = `${dir.slice(0, dir.length - 1).join('/')}/exiftool.config`
-    log(dir)
     await rm(`${file}.bk`)
+  } catch (e) {
+    err(e)
+  }
+  try {
     await rm(`${file}.test`)
   } catch (e) {
-    log(e)
+    err(e)
+  }
+  try {
+    await rm(path.resolve(__dirname, 'setConfigPathTest', spacey), { recursive: true, force: true })
+  } catch (e) {
+    err(e)
+  }
+  try {
+    await rm(path.resolve(__dirname, spacey), { recursive: true, force: true })
+  } catch (e) {
+    err(e)
   }
 })
 
