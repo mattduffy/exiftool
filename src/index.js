@@ -77,8 +77,6 @@ export class Exiftool {
     try {
       if (this._executable === null) {
         this._executable = await this.which()
-        // const result = await this.which()
-        // this._executable = result.value
         this._version = await this.version()
       }
       log('setting the command string')
@@ -1053,25 +1051,52 @@ export class Exiftool {
     }
   }
 
+  async getThumbnail(image) {
+    return this.getThumbnails(image)
+  }
+
   /**
    * Extract any embedded thumbnail/preview images.
    * @summary Extract any embedded thumbnail/preview images.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param { String } image - The name of the image to get thumbnails from.
+   * @param { String } [image] - The name of the image to get thumbnails from.
    * @throws { Error } Throws an error if getting thumbnail data fails for any reason.
    * @return { Object } Collection of zero or more thumbnails from image.
    */
   async getThumbnails(image) {
     const log = debug.extend('getThumbnails')
     const err = error.extend('getThumbnails')
-    if (!image) {
-      const msg = 'Missing required image name parameter.'
-      err(msg)
-      throw new Error(msg)
+    if (image) {
+      this.setPath(image)
     }
-    log('hi')
-    return this._command
+    if (this._path === null) {
+      const msg = 'No image was specified to write new metadata content to.'
+      err(msg)
+      throw new Error()
+    }
+    this.setOutputFormat()
+    this.clearShortcut()
+    this.enableBinaryTagOutput(true)
+    this.setMetadataTags('-Preview:all')
+    log(this._command)
+    let metadata
+    try {
+      metadata = await cmd(this._command)
+      if (metadata.stderr !== '') {
+        err(metadata.stderr)
+        throw new Error(metadata.stderr)
+      }
+      metadata = JSON.parse(metadata.stdout)
+      metadata.push({ exiftool_command: this._command })
+      metadata.push({ format: 'json' })
+    } catch (e) {
+      err(e)
+      e.exiftool_command = this._command
+      return e
+    }
+    log(metadata)
+    return metadata
   }
 
   /**
@@ -1142,11 +1167,11 @@ export class Exiftool {
    * @summary Write a new metadata value to the designated tags.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
+   * @param { String|String[] } metadataToWrite - A string value with tag name and new value or an array of tag strings.
    * @throws { Error } Throws error if there is no valid path to an image file.
    * @throws { Error } Thros error if the current path is to a directory instead of a file.
    * @throws { Error } Thros error if the expected parameter is missing or of the wrong type.
    * @throws { Error } Thros error if exiftool returns a fatal error via stderr.
-   * @param { String|String[] } metadataToWrite - A string value with tag name and new value or an array of tag strings.
    * @return { Object|Error } Returns an object literal with success or error messages, or throws an exception if no image given.
    */
   async writeMetadataToTag(metadataToWrite) {
