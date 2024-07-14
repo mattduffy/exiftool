@@ -712,7 +712,9 @@ export class Exiftool {
       // log(`checking _opts keys: _opts[${key}]: ${this._opts[key]}`)
       if (/overwrite_original/i.test(key)) {
         log(`ignoring ${key}`)
-        tmp += ''
+        log('well, not really for now.')
+        // tmp += ''
+        tmp += `${this._opts[key]} `
       } else if (/tagList/i.test(key) && this._opts.tagList === null) {
         // log(`ignoring ${key}`)
         tmp += ''
@@ -1095,7 +1097,7 @@ export class Exiftool {
       e.exiftool_command = this._command
       return e
     }
-    log(metadata)
+    // log(metadata)
     return metadata
   }
 
@@ -1104,27 +1106,40 @@ export class Exiftool {
    * @summary Embed the given thumbnail data into the image.  Optionally provide a specific metadata tag target.
    * @author Matthew Duffy <mattduffy@gmail.com>
    * @async
-   * @param { String } image - The target image to receive the thumbnail data.
-   * @param { ArrayBuffer } data - An array buffer containing the thumbnail data.
+   * @param { String } data - A resolved path to the thumbnail data.
+   * @param { String } [image = null] - The target image to receive the thumbnail data.
    * @param { String } [tag = 'EXIF:ThumbnailImage'] - Optional destination tag, if other than the default value.
    * @throws { Error } Throws an error if saving thumbnail data fails for any reason.
-   * @return { undefined }
+   * @return { Object } An object containing success or error messages, plus the exiftool command used.
    */
-  async setThumbnail(image, data, tag = 'EXIF:ThumbnailImage') {
+  async setThumbnail(data, image = null, tag = 'EXIF:ThumbnailImage') {
     const log = debug.extend('setThumbnail')
     const err = error.extend('setThumbnail')
-    if (!image) {
-      const msg = 'Missing required image name parameter.'
-      err(msg)
-      throw new Error(msg)
-    }
     if (!data) {
       const msg = 'Missing required data parameter.'
       err(msg)
       throw new Error(msg)
     }
-    log(`embedding thumbnail data in ${tag}`)
-    return this._command
+    if (image) {
+      this.setPath(image)
+    }
+    const dataPath = path.resolve(data)
+    // this.setOverwriteOriginal(true)
+    this.setOutputFormat()
+    this.clearShortcut()
+    this.setMetadataTags(`"-${tag}<=${dataPath}"`)
+    log(this._command)
+    let result
+    try {
+      result = await cmd(this._command)
+      result.exiftool_command = this._command
+      result.success = true
+    } catch (e) {
+      err(e)
+      e.exiftool_command = this._command
+    }
+    log(result)
+    return result
   }
 
   /**
