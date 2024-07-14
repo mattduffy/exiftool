@@ -36,6 +36,8 @@ const image5 = `${imageDir}/nemo.jpeg`
 const image6 = `${imageDir}/nullisland.jpeg`
 // const image7 = `${imageDir}/IPTC-PhotometadataRef-Std2021.1.jpg`
 const image8 = `${imageDir}/Murph_mild_haze.jpg`
+const image9 = `${imageDir}/needs-a-thumbnail.jpg`
+const thumbnail = `${imageDir}/thumbnail.jpg`
 const spacey = 'SNAPCHAT MEMORIES'
 const spaceyPath = `${__dirname}/${spacey}/Murph_mild_haze.jpg`
 const RealShortcut = 'BasicShortcut'
@@ -455,5 +457,37 @@ describe('Exiftool metadata extractor', () => {
     expect.assertions(2)
     expect(result.value).toBeTruthy()
     expect(exiftool._command).toMatch(/SNAPCHAT/)
+  })
+
+  test('use getThumbnails() method to extract preview image data', async () => {
+    const log = debug.extend('test-27-get-thumbnails')
+    const err = error.extend('test-27-get-thumbnails')
+    let exiftool
+    let thumbs
+    try {
+      exiftool = await new Exiftool().init(image8)
+      thumbs = await exiftool.getThumbnails()
+      log(thumbs[0]['EXIF:ThumbnailImage'])
+    } catch (e) {
+      err(e)
+    }
+    expect.assertions(1)
+    expect(thumbs.length).toBeGreaterThanOrEqual(3)
+  })
+
+  test('use setThumbnail() method to embed preview image', async () => {
+    const log = debug.extend('test-28-set-thumbnail')
+    const err = error.extend('test-28-set-thumbnail')
+    const exiftool = await new Exiftool().init(image9)
+    let result
+    log(`needs-a-thumbnail.jpg: ${image9}`)
+    log(`thumbnail:             ${thumbnail}`)
+    try {
+      result = await exiftool.setThumbnail(thumbnail)
+    } catch (e) {
+      err(e)
+    }
+    expect.assertions(1)
+    expect(result.success).toBeTruthy()
   })
 })
