@@ -109,6 +109,37 @@ console.log(thumbnail)
 // 'base64:/9j/4AAQSkZJRgABAgEASABIAAD/4QKkaHR.........'
 ```
 
+#### Embedded Thumbnail Images
+There are several tags that may store tiny thumbnails or previews of the containing image file.  ```Exiftool``` provides two simple methods for accessing thumbnail data.  The ```getThumbnails()``` method will return a JSON object containing each version of thumbnail data (Base64 encoded) embedded in the file.  This method is an **Async/Await** method.
+```javascript
+let exiftool = await new Exiftool().init( 'images/copper.jgp' )
+const thumbnails = await exiftool.getThumbnails()
+console.log(thumbnails)
+// [
+//   {
+//     SourceFile: '/www/images/copper.jpg',
+//     'EXIF:ThumbnailImage': 'base64:/9j/wAA...'
+//   },
+//   {
+//     exiftool_command: '/usr/local/bin/exiftool -config "/../exiftool/src/exiftool.config" -json -Preview:all  -groupNames -s3 -quiet --ext cjs --ext css --ext html --ext js --ext json --ext md --ext mjs --ext txt -binary "/www/images/copper.jpg"'
+//   },
+//   { format: 'json' },
+// ]
+```
+
+Setting a thumbnail is easy, with the ```setThumbnail(<thumbnail-path>)``` method.  The first parameter is required, a path to the thumbnail file to be embedded.  The default tag name used to store the thumbnail data is ```EXIF:ThumbnailImage```.  This is an **Async/Await** method.
+```javascript
+let exiftool = await new Exiftool().init( 'images/copper.jgp' )
+const result = await exiftool.setThumbnails('images/new-thumbnail.jpg')
+console.log(result)
+// {
+//   stdout: '',
+//   stderr: '',
+//   exiftool_command: '/usr/local/bin/exiftool -config "/../exiftool/src/exiftool.config" -json "-EXIF:ThumbnailImage<=/www/images/new-thumbnail.jpg" "/www/images/copper.jpg"',
+//   success: true
+// }
+```
+
 #### Metadata Output Format
 The default output format when issuing metadata queries is JSON.  You can change the output format to XML by calling the ```setOutputFormat(<xml|json>)``` method before calling the ```getMetadata()``` method.
 
