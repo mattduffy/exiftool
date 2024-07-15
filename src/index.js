@@ -990,7 +990,7 @@ export class Exiftool {
     const log = debug.extend('getMetadata')
     const err = error.extend('getMetadata')
     if (fileOrDir !== null && fileOrDir !== '') {
-      this.setPath(fileOrDir)
+      await this.setPath(fileOrDir)
     }
     log(`shortcut: ${shortcut}`)
     // if (shortcut !== null && shortcut !== '') {
@@ -1070,7 +1070,7 @@ export class Exiftool {
     const log = debug.extend('getThumbnails')
     const err = error.extend('getThumbnails')
     if (image) {
-      this.setPath(image)
+      await this.setPath(image)
     }
     if (this._path === null) {
       const msg = 'No image was specified to write new metadata content to.'
@@ -1121,7 +1121,7 @@ export class Exiftool {
       throw new Error(msg)
     }
     if (image) {
-      this.setPath(image)
+      await this.setPath(image)
     }
     const dataPath = path.resolve(data)
     // this.setOverwriteOriginal(true)
