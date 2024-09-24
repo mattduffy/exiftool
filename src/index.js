@@ -8,13 +8,14 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { stat } from 'node:fs/promises'
 import { promisify } from 'node:util'
-import { exec } from 'node:child_process'
+import { exec, spawn } from 'node:child_process'
 import Debug from 'debug'
 import * as fxp from 'fast-xml-parser'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const cmd = promisify(exec)
+const _spawn = promisify(spawn)
 Debug.log = console.log.bind(console)
 const debug = Debug('exiftool')
 const error = debug.extend('ERROR')
@@ -1368,8 +1369,20 @@ export class Exiftool {
     command += ` ${query}`
     try {
       let result = await cmd(command)
-      const tmp = JSON.parse(result.stdout.trim())
+      log(result.stdout)
+      const tmp = JSON.parse(result.stdout?.trim())
       const tmperr = result.stderr
+      // let result = await spawn(`'${this._command}'`)
+      // let tmp
+      // result.stdout.on('data', (data) => {
+      //   log(`stdout: ${data}`)
+      //   tmp = JSON.parse(data.trim())
+      // })
+      // let tmperr
+      // result.stderr.on('data', (data) => {
+      //   // tmperr = result.stderr
+      //   tmperr = data
+      // })
       result = tmp
       result.push({ exiftool_command: command })
       result.push({ stderr: tmperr })
