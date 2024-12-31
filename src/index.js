@@ -1368,11 +1368,13 @@ export class Exiftool {
     }
     command += ` ${query}`
     try {
+      log(`raw query: ${query}`)
+      log(`raw command: ${command}`)
       let result = await cmd(command)
       log(result.stdout)
       const tmp = JSON.parse(result.stdout?.trim())
       const tmperr = result.stderr
-      // let result = await spawn(`'${this._command}'`)
+      // let result = await _spawn(`'${this._command}'`)
       // let tmp
       // result.stdout.on('data', (data) => {
       //   log(`stdout: ${data}`)
