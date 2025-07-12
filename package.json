@@ -14,13 +14,13 @@
   "bugs": {
     "url": "https://github.com/mattduffy/exiftool/issues"
   },
+  "scripts": {
+    "test": "DEBUG=exiftool:* node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
   "exports": {
     ".": "./src/index.js",
     "./which.js": "./src/which.js",
     "./package.json": "./package.json"
-  },
-  "scripts": {
-    "test": "DEBUG=exiftool:* node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "devDependencies": {
     "@jest/globals": "29.2.0",
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "debug": "4.3.4",
-    "fast-xml-parser": "4.3.6"
+    "fast-xml-parser": "4.5.3"
   },
   "keywords": [
     "exiftool",

@@ -8,14 +8,17 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { stat } from 'node:fs/promises'
 import { promisify } from 'node:util'
-import { exec, spawn } from 'node:child_process'
+import {
+  exec,
+  // spawn,
+} from 'node:child_process'
 import Debug from 'debug'
 import * as fxp from 'fast-xml-parser'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const cmd = promisify(exec)
-const _spawn = promisify(spawn)
+// const _spawn = promisify(spawn)
 Debug.log = console.log.bind(console)
 const debug = Debug('exiftool')
 const error = debug.extend('ERROR')
@@ -29,7 +32,8 @@ const error = debug.extend('ERROR')
 export class Exiftool {
   /**
    * Create an instance of the exiftool wrapper.
-   * @param { string } imagePath - String value of file path to an image file or directory of images.
+   * @param { string } imagePath - String value of file path to an image file or directory
+   *                               of images.
    * @param { Boolean } [test] - Set to true to test outcome of exiftool command not found.
    */
   constructor(imagePath, test) {
