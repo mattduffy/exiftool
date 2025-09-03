@@ -1,7 +1,8 @@
 /**
  * @module @mattduffy/exiftool
  * @author Matthew Duffy <mattduffy@gmail.com>
- * @file __tests__/exif.test.js A Jest test suite testing the methods of the Exiftool class.
+ * @summary  A Jest test suite testing the methods of the Exiftool class.
+ * @file __tests__/exif.test.js
  */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -93,7 +94,10 @@ afterAll(async () => {
     err(e)
   }
   try {
-    await rm(path.resolve(__dirname, 'setConfigPathTest', spacey), { recursive: true, force: true })
+    await rm(
+      path.resolve(__dirname, 'setConfigPathTest', spacey),
+      { recursive: true, force: true },
+    )
   } catch (e) {
     err(e)
   }
@@ -146,26 +150,29 @@ describe('Exiftool metadata extractor', () => {
     expect(exif).toMatch(/exiftool/)
   })
 
-  test('get/setConfigPath: change the file system path to the exiftool.config file', async () => {
-    const log = debug.extend('test-05-get/setConfigPath')
-    expect.assertions(4)
-    const img = new Exiftool()
-    // setConfigPathTest/exiftool.config
-    const newConfigFile = `${__dirname}/setConfigPathTest/exiftool.config`
-    log(newConfigFile)
-    const oldConfigFile = img.getConfigPath()
-    expect(oldConfigFile.value).toMatch(/exiftool\/src\/exiftool.config$/)
+  test(
+    'get/setConfigPath: change the file system path to the exiftool.config file',
+    async () => {
+      const log = debug.extend('test-05-get/setConfigPath')
+      expect.assertions(4)
+      const img = new Exiftool()
+      // setConfigPathTest/exiftool.config
+      const newConfigFile = `${__dirname}/setConfigPathTest/exiftool.config`
+      log(newConfigFile)
+      const oldConfigFile = img.getConfigPath()
+      expect(oldConfigFile.value).toMatch(/exiftool\/src\/exiftool.config$/)
 
-    const result = await img.setConfigPath(newConfigFile)
-    expect(result.value).toBeTruthy()
-    expect(img._command).toMatch(/setConfigPathTest/)
+      const result = await img.setConfigPath(newConfigFile)
+      expect(result.value).toBeTruthy()
+      expect(img._command).toMatch(/setConfigPathTest/)
 
-    // test a bad file path
-    // setConfigPathTest/bad/exiftool.config
-    const badConfigFile = `${__dirname}/setConfigPathTest/bad/exiftool.config`
-    const badResult = await img.setConfigPath(badConfigFile)
-    expect(badResult.e.code).toMatch(/ENOENT/)
-  })
+      // test a bad file path
+      // setConfigPathTest/bad/exiftool.config
+      const badConfigFile = `${__dirname}/setConfigPathTest/bad/exiftool.config`
+      const badResult = await img.setConfigPath(badConfigFile)
+      expect(badResult.e.code).toMatch(/ENOENT/)
+    },
+  )
 
   test('setPath: is the path to file or directory', async () => {
     const log = debug.extend('test-06-setPath')
@@ -267,7 +274,11 @@ describe('Exiftool metadata extractor', () => {
     let img1 = new Exiftool()
     // init with the copper.jpg image1
     img1 = await img1.init(image1)
-    const result1 = await img1.getMetadata('', '', ['file:FileSize', 'file:DateTimeOriginal', 'file:Model'])
+    const result1 = await img1.getMetadata(
+      '',
+      '',
+      ['file:FileSize', 'file:DateTimeOriginal', 'file:Model'],
+    )
     const count = parseInt(result1.slice(-1)[0], 10)
     log(count)
     expect(count).toBe(1)
@@ -283,22 +294,33 @@ describe('Exiftool metadata extractor', () => {
     // init with copper.jpg image1
     img2 = await img2.init(image1)
     // replace image1 with IMG_1820.jpg
-    const result2 = await img2.getMetadata(image2, '', ['file:FileSize', 'file:DateTimeOriginal', 'file:ImageSize'])
+    const result2 = await img2.getMetadata(
+      image2,
+      '',
+      ['file:FileSize', 'file:DateTimeOriginal', 'file:ImageSize'],
+    )
     log(result2[0])
     expect(result2[0]).toHaveProperty('File:FileSize')
     expect(result2[0]).toHaveProperty('Composite:GPSPosition')
   })
 
-  test('getMetadata: specify new shortcut name and tag list as an optional parameter', async () => {
-    const log = debug.extend('test-14-getMetadata-new-shortcut')
-    // test passing a new shortcut name
-    let img3 = new Exiftool()
-    // image3 is IMG_1820.heic
-    img3 = await img3.init(image3)
-    const result3 = await img3.getMetadata('', NewShortcut, ['file:FileSize', 'file:ImageSize'])
-    log(result3[0]['file:FileSize'])
-    expect(result3[0]).toHaveProperty('SourceFile')
-  })
+  test(
+    'getMetadata: specify new shortcut name and tag list as an optional parameter',
+    async () => {
+      const log = debug.extend('test-14-getMetadata-new-shortcut')
+      // test passing a new shortcut name
+      let img3 = new Exiftool()
+      // image3 is IMG_1820.heic
+      img3 = await img3.init(image3)
+      const result3 = await img3.getMetadata(
+        '',
+        NewShortcut,
+        ['file:FileSize', 'file:ImageSize'],
+      )
+      log(result3[0]['file:FileSize'])
+      expect(result3[0]).toHaveProperty('SourceFile')
+    },
+  )
 
   test('getMetadata: catch the forbidden -all= data stripping tag', async () => {
     const log = debug.extend('test-15-getMetadata-catch-forbidden-tag')
@@ -314,18 +336,22 @@ describe('Exiftool metadata extractor', () => {
     }
   })
 
-  test('stripMetadata: strip all the metadata out of a file and keep a backup of the original file', async () => {
-    const log = debug.extend('test-16-stripMetadata')
-    log()
-    // test stripping all metadata from an image file
-    expect.assertions(2)
-    let img1 = new Exiftool()
-    // init with strip.jpg image 4
-    img1 = await img1.init(image4)
-    const result = await img1.stripMetadata()
-    expect(result.value).toBeTruthy()
-    expect(result.original).toMatch(/_original/)
-  })
+  test(
+    'stripMetadata: strip all the metadata out of a file and keep a backup of the '
+      + 'original file',
+    async () => {
+      const log = debug.extend('test-16-stripMetadata')
+      log()
+      // test stripping all metadata from an image file
+      expect.assertions(2)
+      let img1 = new Exiftool()
+      // init with strip.jpg image 4
+      img1 = await img1.init(image4)
+      const result = await img1.stripMetadata()
+      expect(result.value).toBeTruthy()
+      expect(result.original).toMatch(/_original/)
+    },
+  )
 
   test('writeMetadataToTag: write new metadata to one of more designate tags', async () => {
     const log = debug.extend('test-17-writeMetadataToTag')
@@ -365,15 +391,19 @@ describe('Exiftool metadata extractor', () => {
     expect(result1.stdout.trim()).toMatch(/1 image files updated/)
   })
 
-  test('raw: send a fully composed exiftool command, bypassing instance config defualts', async () => {
-    const log = debug.extend('test-19-raw')
-    // test sending a raw exiftool command
-    const img1 = new Exiftool()
-    const command = `${executable} -G -json -EXIF:ImageDescription -IPTC:ObjectName -IPTC:Keywords ${image1}`
-    log(command)
-    const result1 = await img1.raw(command)
-    expect(result1[0]).toHaveProperty('IPTC:ObjectName')
-  })
+  test(
+    'raw: send a fully composed exiftool command, bypassing instance config defualts',
+    async () => {
+      const log = debug.extend('test-19-raw')
+      // test sending a raw exiftool command
+      const img1 = new Exiftool()
+      const command = `${executable} -G -json -EXIF:ImageDescription -IPTC:ObjectName `
+        + `-IPTC:Keywords ${image1}`
+      log(command)
+      const result1 = await img1.raw(command)
+      expect(result1[0]).toHaveProperty('IPTC:ObjectName')
+    },
+  )
 
   test('nemo: set the gps location to point nemo', async () => {
     const log = debug.extend('test-20-nemo')
@@ -420,7 +450,6 @@ describe('Exiftool metadata extractor', () => {
     log(packet)
     const pattern = /^<\?xpacket .*\?>.*/
     expect(packet.xmp).toMatch(pattern)
-    // expect(packet.xmp).toMatch(/^<\?xpacket\s?(?<begin>begin=.*)?\s?(?<id>id=.*)?(.*)?>.*(?<end><\?xpacket.*>)/)
   })
 
   test('exiftool command not found', async () => {
