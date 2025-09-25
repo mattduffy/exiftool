@@ -425,10 +425,10 @@ describe('Exiftool metadata extractor', () => {
     img1.setGPSCoordinatesOutputFormat('gps')
     await img1.nullIsland()
     const result1 = await img1.getMetadata('', null, '-GPS:all')
-    expect.assertions(2)
     expect(result1[0]).toHaveProperty('EXIF:GPSLatitude')
     log(result1[0]['EXIF:GPSLatitude'])
     expect(Number.parseFloat(result1[0]['EXIF:GPSLatitude'])).toEqual(0)
+    expect.assertions(2)
   })
 
   test('set output format to xml', async () => {
@@ -436,11 +436,11 @@ describe('Exiftool metadata extractor', () => {
     log()
     const img8 = await new Exiftool().init(image8)
     const shouldBeTrue = img8.setOutputFormat('xml')
-    expect.assertions(3)
     expect(shouldBeTrue).toBeTruthy()
     const result1 = await img8.getMetadata('', null, '-File:all')
     expect(result1[1].raw.slice(0, 5)).toMatch('<?xml')
     expect(result1[result1.length - 3].format).toEqual('xml')
+    expect.assertions(3)
   })
 
   test('get xmp packet', async () => {
@@ -500,8 +500,8 @@ describe('Exiftool metadata extractor', () => {
     } catch (e) {
       err(e)
     }
-    expect.assertions(1)
     expect(thumbs.length).toBeGreaterThanOrEqual(3)
+    expect.assertions(1)
   })
 
   test('use setThumbnail() method to embed preview image', async () => {
@@ -516,7 +516,24 @@ describe('Exiftool metadata extractor', () => {
     } catch (e) {
       err(e)
     }
-    expect.assertions(1)
     expect(result.success).toBeTruthy()
+    expect.assertions(1)
+  })
+
+  test('default stdio buffer size: 10 x (1024 x 1024) bytes.', async () => {
+    const log = debug.extend('test-29-get-maxBuffer')
+    const img = new Exiftool()
+    const defaultBufferSize = img.getOutputBufferSize()
+    log('default stdio buffer size: ', defaultBufferSize)
+    expect(Number.parseInt(defaultBufferSize, 10)).toEqual(10 * (1024 * 1024))
+  })
+
+  test('set stdio buffer size to : 20 x (1024 x 1024) bytes.', async () => {
+    const log = debug.extend('test-30-set-maxBuffer')
+    const img = new Exiftool()
+    img.setMaxBufferMultiplier(20)
+    const newBufferSize = img.getOutputBufferSize(20)
+    log('new stdio buffer size: ', newBufferSize)
+    expect(Number.parseInt(newBufferSize, 10)).toEqual(20 * (1024 * 1024))
   })
 })
