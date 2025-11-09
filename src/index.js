@@ -137,7 +137,12 @@ export class Exiftool {
    */
   setMaxBufferMultiplier(multiplier) {
     const log = debug.extend('setMaxBufferMultiplier')
-    const _multiplier = Number.parseInt(multiplier, 10)
+    let _multiplier
+    if (multiplier === Infinity || multiplier === undefined) {
+      _multiplier = Infinity
+    } else {
+      _multiplier = Number.parseInt(multiplier, 10)
+    }
     if (_multiplier) {
       const orig = (1024 * 1024) * this._MAX_BUFFER_MULTIPLIER
       this._MAX_BUFFER_MULTIPLIER = _multiplier
@@ -1102,7 +1107,8 @@ export class Exiftool {
       // metadata stuffed insided as image data itself.  This sets stdio output
       // buffer sizee to 10MB.
       let metadata = await cmd(this._command, {
-        maxBuffer: (1024 * 1204) * this._MAX_BUFFER_MULTIPLIER,
+        // maxBuffer: (1024 * 1204) * this._MAX_BUFFER_MULTIPLIER,
+        maxBuffer: Infinity,
       })
       if (metadata.stderr !== '') {
         throw new Error(metadata.stderr)
