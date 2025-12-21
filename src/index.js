@@ -146,19 +146,27 @@ export class Exiftool {
     let output = ''
     const args = this.getOptionsAsArray()
     args.push(this._path)
-    const exiftool = spawn(this._executable, args)
-    exiftool.stdout.on('data', (data) => {
-      log(data)
-      output += data
-    })
-    exiftool.stderr.on('error', (data) => {
-      err(data)
-      output += data
-    })
-    exiftool.on('close', (code) => {
-      log(exiftool)
-      log(`child process exited with code ${code}`)
-      return output
+    return new Promise((resolve, reject) => {
+      const exiftool = spawn(this._executable, args)
+      let didError = false
+      exiftool.stdout.on('data', (data) => {
+        log(data)
+        output += data
+      })
+      exiftool.stderr.on('error', (data) => {
+        didError = true
+        err(data)
+        output += data
+      })
+      exiftool.on('close', (code) => {
+        log(exiftool)
+        log(`child process exited with code ${code}`)
+        if (didError) {
+          reject(output)
+        } else {
+          resolve(output)
+        }
+      })
     })
   }
 
