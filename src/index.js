@@ -11,6 +11,7 @@ import { stat } from 'node:fs/promises'
 import { promisify } from 'node:util'
 import {
   exec,
+  spawn,
 } from 'node:child_process'
 import Debug from 'debug'
 import * as fxp from 'fast-xml-parser'
@@ -126,6 +127,39 @@ export class Exiftool {
       err(e)
     }
     return this
+  }
+
+  /**
+   * Run the exiftool command in node's child_process.spawn() method.
+   * @summary Use child_process.spawn() method instead of child_process.exec().
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { object }
+   */
+  cmd() {
+    const log = debug.extend('cmd')
+    const err = error.extend('cmd')
+    log(this._executable)
+    // log(this.getOptions())
+    // log(this.getOptionsAsArray())
+    log(this._opts)
+    log(this._path)
+    let output = ''
+    const args = this.getOptionsAsArray()
+    args.push(this._path)
+    const exiftool = spawn(this._executable, args)
+    exiftool.stdout.on('data', (data) => {
+      log(data)
+      output += data
+    })
+    exiftool.stderr.on('error', (data) => {
+      err(data)
+      output += data
+    })
+    exiftool.on('close', (code) => {
+      log(exiftool)
+      log(`child process exited with code ${code}`)
+      return output
+    })
   }
 
   /**
@@ -779,13 +813,10 @@ export class Exiftool {
     if (this._opts.excludeTypes === '') {
       this.setExcludeTypes()
     }
-    // return Object.values(this._opts).join(' ')
     Object.keys(this._opts).forEach((key) => {
-      // log(`checking _opts keys: _opts[${key}]: ${this._opts[key]}`)
       if (/overwrite_original/i.test(key)) {
         log(`ignoring ${key}`)
         log('well, not really for now.')
-        // tmp += ''
         tmp += `${this._opts[key]} `
       } else if (/tagList/i.test(key) && this._opts.tagList === null) {
         // log(`ignoring ${key}`)
@@ -794,7 +825,34 @@ export class Exiftool {
         tmp += `${this._opts[key]} `
       }
     })
-    log('option string: ', tmp)
+    log('options string: ', tmp)
+    return tmp
+  }
+
+  /**
+   * Concatenate all the exiftool options together into a String[].
+   * @summary Concatenate all the exiftool options together into a String[].
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @return { String[] } Array of commandline options to exiftool.
+   */
+  getOptionsAsArray() {
+    const log = debug.extend('getOptionsAsArray')
+    const tmp = []
+    if (this._opts.excludeTypes === '') {
+      this.setExcludeTypes()
+    }
+    Object.keys(this._opts).forEach((key) => {
+      if (/overwrite_original/i.test(key)) {
+        tmp.push(this._opts[key])
+      } else if (/tagList/i.test(key) && this._opts.tagList === null) {
+        log(`ignoring ${key}`)
+      } else if (this._opts[key] === '') {
+        log(`ignoring empty ${key}`)
+      } else {
+        tmp.push(this._opts[key])
+      }
+    })
+    log('options array: ', tmp)
     return tmp
   }
 
