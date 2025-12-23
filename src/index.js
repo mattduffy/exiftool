@@ -133,41 +133,61 @@ export class Exiftool {
    * Run the exiftool command in node's child_process.spawn() method.
    * @summary Use child_process.spawn() method instead of child_process.exec().
    * @author Matthew Duffy <mattduffy@gmail.com>
+   * @async
    * @return { object }
    */
-  cmd() {
+  async cmd() {
     const log = debug.extend('cmd')
     const err = error.extend('cmd')
     log(this._executable)
-    // log(this.getOptions())
-    // log(this.getOptionsAsArray())
     log(this._opts)
     log(this._path)
-    let output = ''
     const args = this.getOptionsAsArray()
     args.push(this._path)
-    return new Promise((resolve, reject) => {
-      const exiftool = spawn(this._executable, args)
-      let didError = false
-      exiftool.stdout.on('data', (data) => {
-        log(data)
-        output += data
+    const config = {
+      shell: true,
+    }
+    const metadata = new Promise((resolve, reject) => {
+      const output = {
+        stdout: '',
+        stderr: '',
+      }
+      const process = spawn(this._executable, args, config)
+
+      process.stdout.on('data', (data) => {
+        output.stdout += data.toString()
       })
-      exiftool.stderr.on('error', (data) => {
-        didError = true
-        err(data)
-        output += data
+
+      process.stderr.on('data', (data) => {
+        output.stderr += data.toString()
       })
-      exiftool.on('close', (code) => {
-        log(exiftool)
-        log(`child process exited with code ${code}`)
-        if (didError) {
-          reject(output)
-        } else {
+
+      process.on('close', (code) => {
+        if (code === 0) {
+          if (this._opts.outputFormat === '-json') {
+            output.stdout = JSON.parse(output.stdout)
+          }
           resolve(output)
+        } else {
+          // error(process)
+          output.stderr = JSON.parse(output.stderr)
+          error(new Error(`Process exited with code ${code}: ${output.stderr}`))
+          reject(output)
         }
       })
+
+      process.on('error', (e) => {
+        err('spawn error', e)
+        // if (output.stdout !== '') {
+        //   output.stdout = JSON.parse(output.stdout)
+        // }
+        // if (output.stderr !== '') {
+        //   output.stderr = JSON.parse(output.stderr)
+        // }
+        reject(JSON.parse(e))
+      })
     })
+    return metadata
   }
 
   /**
@@ -543,7 +563,8 @@ export class Exiftool {
       }
       command += ` -struct -codedcharacterset=utf8 ${this._path}`
       log(command)
-      const result = await cmd(command)
+      // const result = await cmd(command)
+      const result = await this.cmd(command)
       result.exiftool_command = command
       log('set new location: %o', result)
       return result
@@ -577,7 +598,8 @@ export class Exiftool {
       const command = `${this._executable} -GPSLatitude=${latitude} `
         + `-GPSLatitudeRef=${latRef} -GPSLongitude=${longitude} -GPSLongitudeRef=${longRef} `
         + `-GPSAltitude=${alt} -GPSAltitudeRef=${altRef} ${this._path}`
-      const result = await cmd(command)
+      // const result = await cmd(command)
+      const result = await this.cmd(command)
       result.exiftool_command = command
       log('null island: %o', result)
       return result
@@ -611,7 +633,8 @@ export class Exiftool {
       const command = `${this._executable} -GPSLatitude=${latitude} -GPSLatitudeRef=${latRef} `
         + `-GPSLongitude=${longitude} -GPSLongitudeRef=${longRef} -GPSAltitude=${alt} `
         + `-GPSAltitudeRef=${altRef} ${this._path}`
-      const result = await cmd(command)
+      // const result = await cmd(command)
+      const result = await this.cmd(command)
       result.exiftool_command = command
       log('nemo: %o', result)
       return result
@@ -642,7 +665,8 @@ export class Exiftool {
         + '-XMP:LocationCreated*=  -XMP:Location= -XMP:City= -XMP:Country*= -IPTC:City= '
         + '-IPTC:Province-State= -IPTC:Sub-location= -IPTC:Country*= '
       const command = `${this._executable} ${tags} ${this._path}`
-      const result = await cmd(command)
+      // const result = await cmd(command)
+      const result = await this.cmd(command)
       result.exiftool_command = command
       log('stripLocation: %o', result)
       return result
@@ -670,7 +694,6 @@ export class Exiftool {
     try {
       // test command not founc condition
       const exiftool = (!this?._test) ? 'exiftool' : 'exitfool'
-      // which = await cmd('which exiftool')
       which = await cmd(`which ${exiftool}`)
       if (which.stdout.slice(-1) === '\n') {
         which = which.stdout.slice(0, -1)
@@ -851,11 +874,12 @@ export class Exiftool {
     }
     Object.keys(this._opts).forEach((key) => {
       if (/overwrite_original/i.test(key)) {
-        tmp.push(this._opts[key])
+        log(`ignoring ${this._opts[key]}`)
+        // tmp.push(this._opts[key])
       } else if (/tagList/i.test(key) && this._opts.tagList === null) {
-        log(`ignoring ${key}`)
+        log(`ignoring ${this._opts[key]}`)
       } else if (this._opts[key] === '') {
-        log(`ignoring empty ${key}`)
+        log(`ignoring empty ${this._opts[key]}`)
       } else {
         tmp.push(this._opts[key])
       }
@@ -1159,34 +1183,41 @@ export class Exiftool {
         throw new Error("Can't include metadata stripping -all= tag in get metadata reqeust.")
       }
       const options = this.setMetadataTags(tagsToExtract.flat())
-      log(options)
-      log(this._opts)
+      log('options', options)
+      log('this._opts', this._opts)
       if (options.error) {
-        err(options.error)
+        err('options.error', options.error)
         throw new Error('tag list option failed')
       }
     }
     log(this._command)
     try {
       let count
+      let metadata
       // Increase the stdio buffer size because some images have almost as much
       // metadata stuffed insided as image data itself.  This sets stdio output
-      // buffer sizee to 10MB.
-      let metadata = await cmd(this._command, {
-        // maxBuffer: (1024 * 1204) * this._MAX_BUFFER_MULTIPLIER,
-        maxBuffer: Infinity,
-      })
+      // buffer size to 10MB x multiplier value.
+      if (this._opts.outputFormat === '-xml') {
+        metadata = await cmd(this._command, {
+          maxBuffer: (1024 * 1204) * this._MAX_BUFFER_MULTIPLIER,
+        })
+        log('testing new Exiftool.cmd()', JSON.parse(metadata.stdout))
+      } else {
+        metadata = await this.cmd()
+        log('testing new Exiftool.cmd()', metadata.stdout)
+      }
       if (metadata.stderr !== '') {
         throw new Error(metadata.stderr)
       }
-      const match = this._opts.outputFormat.match(/(?<format>xml.*|json)/i)
-      if (match && match.groups.format === 'json') {
-        metadata = JSON.parse(metadata.stdout)
+      const outFormat = this._opts.outputFormat.match(/(?<format>xml.*|json)/i)
+      if (outFormat && outFormat.groups.format === 'json') {
+        // metadata = JSON.parse(metadata.stdout)
+        metadata = metadata.stdout
         count = metadata.length
         metadata.push({ exiftool_command: this._command })
         metadata.push({ format: 'json' })
         metadata.push(count)
-      } else if (match && match.groups.format === 'xmlFormat') {
+      } else if (outFormat && outFormat.groups.format === 'xmlFormat') {
         const tmp = []
         const parser = new fxp.XMLParser()
         const xml = parser.parse(metadata.stdout)
@@ -1241,6 +1272,7 @@ export class Exiftool {
     let metadata
     try {
       metadata = await cmd(this._command)
+      // metadata = await this.cmd(this._command)
       if (metadata.stderr !== '') {
         err(metadata.stderr)
         throw new Error(metadata.stderr)
@@ -1292,6 +1324,7 @@ export class Exiftool {
     let result
     try {
       result = await cmd(this._command)
+      // result = await this.cmd(this._command)
       result.exiftool_command = this._command
       result.success = true
     } catch (e) {
@@ -1317,6 +1350,7 @@ export class Exiftool {
     try {
       const command = `${this._executable} ${this._opts.exiftool_config} -xmp -b ${this._path}`
       packet = await cmd(command)
+      // packet = await this.cmd(command)
       if (packet.stderr !== '') {
         err(packet.stderr)
         throw new Error(packet.stderr)
@@ -1389,6 +1423,7 @@ export class Exiftool {
         + `${tagString} ${file}`
       o.command = write
       const result = await cmd(write)
+      // const result = await this.cmd(write)
       if (result.stdout.trim() === null) {
         throw new Error(`Failed to write new metadata to image - ${file}`)
       }
@@ -1451,6 +1486,7 @@ export class Exiftool {
       const clear = `${this._executable} ${tagString} ${file}`
       o.command = clear
       const result = await cmd(clear)
+      // const result = await this.cmd(clear)
       if (result.stdout.trim() === null) {
         const msg = `Failed to clear the tags: ${tagString}, from ${file}`
         err(msg)
@@ -1500,6 +1536,7 @@ export class Exiftool {
     o.command = strip
     try {
       const result = await cmd(strip)
+      // const result = await this.cmd(strip)
       log(result)
       if (result.stdout.trim().match(/files updated/) === null) {
         throw new Error(`Failed to strip metadata from image - ${file}.`)
@@ -1551,6 +1588,7 @@ export class Exiftool {
       log(`raw query: ${query}`)
       log(`raw command: ${command}`)
       let result = await cmd(command)
+      // let result = await this.cmd(command)
       log(result.stdout)
       const tmp = JSON.parse(result.stdout?.trim())
       const tmperr = result.stderr
