@@ -96,17 +96,9 @@ Error: ATTENTION!!! exiftool IS NOT INSTALLED.  You can get exiftool here: https
       at async node:repl:646:29 {
     [cause]: Error: Command failed: which exitfool
 ```
-### Increasing stdio Output Buffer Size
 
-Images are getting really BIG now.  This means you may have to adjust the size of the `stdio` output buffer for `exiftool` to handle multiple large images at a time.  `nodejs` uses a default value of 1024 x 1024 = 1,048,576 Bytes (1 megabyte).  This may be insufficient for modern high resolution images.  `exiftool` increases this minimum default to (1024 x 1024) x 10 = 10,485,760 Bytes (10 megabytes).  If you would like to increase this value even more, use the ```setMaxBufferMultiplier(<int>)``` method before calling the ```getMetadata()``` method.
-
-```javascript
-let exiftool = new Exiftool()
-exiftool.setMaxBufferMultiplier(20)
-const newBufferSize = exifTool.getOutputBufferSize()
-console.log(newBufferSize)
-// 20971520 Bytes (20 megabytes)
-```
+#### Exiftool Now Uses Spawn
+Images are getting really BIG now.  Issuing metadata extraction commands on multiple large images could consume more memory than was allocated by default to node's ```child_process.exec()``` function.  Previous versions of Exiftool provided the ```exiftool.setMaxBufferMultiplier()``` method to add more memory headroom.  This approach did not work on all occasions and could result in incomplete results.  Exiftool now uses node's ```child_process.spawn()``` function to stream the metadata command results back so there is no need to allocate more memory to the process.  
 
 #### Extracting Binary Tag Data
 There are several tags that store binary data, such as image thumbnails, color profile, image digests, etc..  The default state for exiftool is to not extract binary data from tags.  If you would like to extract the binary data, use the ```enableBinaryTagOutput(<boolean>)``` method before calling the ```getMetadata()``` method.
