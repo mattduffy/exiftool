@@ -22,6 +22,8 @@ const cmd = promisify(exec)
 Debug.log = console.log.bind(console)
 const debug = Debug('exiftool')
 const error = debug.extend('ERROR')
+const info = debug.extend('INFO')
+info.info = console.info.bind(console)
 
 /**
  * A class wrapping the exiftool metadata tool.
@@ -194,12 +196,16 @@ export class Exiftool {
    * Set the maxBuffer size for stdio to support larger image files.
    * @summary Set the maxBuffer size for stdio to support larger image files.
    * @author Matthew Duffy <mattduffy@gmail.com>
+   * @deprecated since 1.17.0.
    * @param { Number } multiplier - Value to multiply the default (1024x1024) setting.
    * @return { undefined }
    */
   setMaxBufferMultiplier(multiplier) {
     const log = debug.extend('setMaxBufferMultiplier')
+    const deprecated = info.extend('Deprecated')
     let _multiplier
+    deprecated('Attention! The Exiftool.setMaxBufferMultiplier() method is now deprecated.')
+    deprecated('Calling this method has not affect on metadata extraction commands.')
     if (multiplier === Infinity || multiplier === undefined) {
       _multiplier = Infinity
     } else {
@@ -213,7 +219,17 @@ export class Exiftool {
     }
   }
 
+  /**
+   * Get the size of the memory buffer that will be allocated to exec().
+   * @summary Get the size of the memory buffer that will be allocated to exec().
+   * @author Matthew Duffy <mattduffy@gmail.com>
+   * @deprecated since 1.17.0.
+   * @return { String }
+   */
   getOutputBufferSize() {
+    const deprecated = info.extend('Deprecated')
+    deprecated('Attention! Adjusting maxBuffer size has been deprecated.')
+    deprecated('Using setMaxBufferMultiplier() has no affect.')
     return `${this._MAX_BUFFER_MULTIPLIER * (1024 * 1024)} Bytes`
   }
 
