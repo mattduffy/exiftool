@@ -480,6 +480,7 @@ export class Exiftool {
     const err = error.extend('createExiftoolConfigFile')
     log('createExiftoolConfigFile method entered')
     const o = { value: null, error: null }
+    /* eslint-disable max-len */
     const stub = `%Image::ExifTool::UserDefined::Shortcuts = (
     BasicShortcut => ['file:Directory','file:FileName','EXIF:CreateDate','file:MIMEType','exif:Make','exif:Model','exif:ImageDescription','iptc:ObjectName','iptc:Caption-Abstract','iptc:Keywords','Composite:GPSPosition'],
     Location => ['EXIF:GPSLatitudeRef', 'EXIF:GPSLatitude', 'EXIF:GPSLongitudeRef', 'EXIF:GPSLongitude', 'EXIF:GPSAltitudeRef', 
@@ -488,6 +489,7 @@ export class Exiftool {
   'XMP:LocationCreatedGPSLongitude', 'XMP:LocationShownGPSLatitude', 'XMP:LocationShownGPSLongitude'],
     StripGPS => ['gps:all='],
 );`
+    /* eslint-enable max-len */
     // let fileName = `${this._cwd}/exiftool.config`
     const fileName = this._exiftool_config
     const echo = `echo "${stub}" > ${fileName}`
