@@ -22,7 +22,7 @@ const __dirname = path.dirname(__filename)
 Debug.log = console.log.bind(console)
 const debug = Debug('exiftool:Test')
 const error = debug.extend('ERROR')
-debug(`exif path: ${executable}`)
+debug(`exif path: ${await executable}`)
 debug(Exiftool)
 
 // Set the items to be used for all the tests here as constants.
@@ -397,9 +397,11 @@ describe('Exiftool metadata extractor', () => {
       const log = debug.extend('test-19-raw')
       // test sending a raw exiftool command
       const img1 = new Exiftool()
-      const command = `${executable} -G -json -EXIF:ImageDescription -IPTC:ObjectName `
+      const command = `${await executable} -G -json -EXIF:ImageDescription -IPTC:ObjectName `
         + `-IPTC:Keywords ${image1}`
-      log(command)
+      log('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
+      log('raw executable', await executable)
+      log('raw command', command)
       const result1 = await img1.raw(command)
       expect(result1[0]).toHaveProperty('IPTC:ObjectName')
     },
