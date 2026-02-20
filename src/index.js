@@ -428,8 +428,9 @@ export class Exiftool {
       err(o.error)
     } else {
       o.value = true
-      o.file = (this._isDirectory) ? null : path.basename(this._path)
-      o.dir = (this._isDirectory) ? this._path : path.dirname(this._path)
+      o.file = (this._isDirectory) ? null : (path.basename(this._path)).replace(/"/, '')
+      o.dir = (this._isDirectory) ? (this._path).replace(/"/, '')
+        : (path.dirname(this._path)).replace(/"/, '')
       o.path = this._path
     }
     return o
