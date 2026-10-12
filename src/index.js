@@ -26,6 +26,21 @@ const info = debug.extend('INFO')
 info.info = console.info.bind(console)
 
 /**
+ * Quote a string so the shell treats it as a single literal argument.
+ * @summary Quote a string so the shell treats it as a single literal argument.
+ * @author Matthew Duffy <mattduffy@gmail.com>
+ * @param { String } arg - The string to be quoted.
+ * @return { String } The arg wrapped in single quotes, with embedded single quotes escaped.
+ */
+function shellQuote(arg) {
+  // Inside single quotes the shell performs no expansion or substitution of any kind,
+  // so ", $, `, \, ;, etc. are all inert.  The only character that can't appear inside
+  // single quotes is the single quote itself, so close the quote, add an escaped quote,
+  // and reopen the quote:  ' -> '\''
+  return `'${String(arg).replace(/'/g, "'\\''")}'`
+}
+
+/**
  * A class wrapping the exiftool metadata tool.
  * @summary A class wrapping the exiftool image metadata extraction tool.
  * @class Exiftool
@@ -42,8 +57,12 @@ export class Exiftool {
     const log = debug.extend('constructor')
     log('constructor method entered')
     this._test = test ?? false
-    this._imgDir = imagePath ?? null
-    this._path = imagePath ?? null
+    // Don't use the constructor imagePath directly, it must go through setPath() in init()
+    // to be resolved and shell quoted.
+    this._initPath = imagePath ?? null
+    this._imgDir = null
+    this._path = null
+    this._rawPath = null
     this._isDirectory = null
     this._fileStats = null
     this._cwd = __dirname
@@ -99,13 +118,16 @@ export class Exiftool {
         { cause: e },
       )
     }
-    if ((imagePath === '' || typeof imagePath === 'undefined') && this._path === null) {
+    const _imagePath = (imagePath === '' || typeof imagePath === 'undefined')
+      ? this._initPath
+      : imagePath
+    if ((_imagePath === '' || _imagePath === null) && this._path === null) {
       err('Param: path - was undefined.')
       err(`Instance property: path - ${this._path}`)
       return false
     }
     try {
-      await this.setPath(imagePath)
+      await this.setPath(_imagePath)
     } catch (e) {
       err(e)
       throw e
@@ -371,31 +393,28 @@ export class Exiftool {
       err(o.error)
       return o
     }
-    let pathToImage
-    if (Array.isArray(imagePath)) {
-      let temp = imagePath.map((i) => `"${path.resolve('.', i)}"`)
-      temp = temp.join(' ')
-      log(
-        'imagePath passed as an Array.  Resolving and concatting the paths into a single '
-        + `string: ${temp}`,
-      )
-      pathToImage = temp
-    } else {
-      pathToImage = `"${path.resolve('.', imagePath)}"`
-    }
-    if (!/^(")?\//.test(pathToImage)) {
+    const paths = (Array.isArray(imagePath) ? imagePath : [imagePath])
+      .map((i) => path.resolve('.', String(i)))
+    if (paths.some((p) => !p.startsWith('/'))) {
       // the path parameter must be a fully qualified file path, starting with /
       throw new Error(
         'The file system path to image must be a fully qualified path, starting from root /.',
       )
     }
+    // Each path is shell quoted before being interpolated into the exiftool command string,
+    // otherwise a path like 'x.jpg"; touch /tmp/pwned; #' would execute arbitrary commands.
+    const pathToImage = paths.map(shellQuote).join(' ')
+    if (paths.length > 1) {
+      log(
+        'imagePath passed as an Array.  Resolving and concatting the paths into a single '
+        + `string: ${pathToImage}`,
+      )
+    }
     try {
+      const [firstPath] = paths
       this._path = pathToImage
-      if (/^"/.test(pathToImage)) {
-        this._fileStats = await stat(pathToImage.slice(1, -1))
-      } else {
-        this._fileStats = await stat(pathToImage)
-      }
+      this._rawPath = firstPath
+      this._fileStats = await stat(this._rawPath)
       this._isDirectory = this._fileStats.isDirectory()
       if (this._fileStats.isDirectory()) {
         this._imgDir = pathToImage
@@ -428,9 +447,8 @@ export class Exiftool {
       err(o.error)
     } else {
       o.value = true
-      o.file = (this._isDirectory) ? null : (path.basename(this._path)).replace(/"/, '')
-      o.dir = (this._isDirectory) ? (this._path).replace(/"/, '')
-        : (path.dirname(this._path)).replace(/"/, '')
+      o.file = (this._isDirectory) ? null : path.basename(this._rawPath)
+      o.dir = (this._isDirectory) ? this._rawPath : path.dirname(this._rawPath)
       o.path = this._path
     }
     return o

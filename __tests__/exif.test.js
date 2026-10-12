@@ -200,6 +200,43 @@ describe('Exiftool metadata extractor', () => {
     }
   })
 
+  test('setPath: escape user-supplied value for image path.', async () => {
+    const log = debug.extend('test-06-setPath-exploit-mitigation')
+    expect.assertions(8)
+    // an injected command would run in the current working directory of the process
+    const pwned = path.resolve('.', 'pwned')
+    // malicious user supplied image paths, each attempting to touch the pwned file
+    const maliciousPaths = [
+      'x.jpg"; touch pwned; #',
+      'x$(touch pwned).jpg',
+      'x`touch pwned`.jpg',
+      "x.jpg'; touch pwned; #",
+    ]
+    const dir = `${testsDir}/setPathExploitTest`
+    await mkdir(dir, { recursive: true })
+    try {
+      // eslint-disable-next-line no-restricted-syntax
+      for (const p of maliciousPaths) {
+        const file = `${dir}/${p}`
+        // eslint-disable-next-line no-await-in-loop
+        await copyFile(image1, file)
+        const img = new Exiftool()
+        // eslint-disable-next-line no-await-in-loop
+        await img.init(file)
+        // eslint-disable-next-line no-await-in-loop
+        const metadata = await img.getMetadata()
+        log(metadata[0].SourceFile)
+        // the whole malicious string is passed to exiftool as a single literal file name
+        expect(metadata[0].SourceFile).toBe(file)
+        // eslint-disable-next-line no-await-in-loop
+        await expect(stat(pwned)).rejects.toThrow()
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true })
+      await rm(pwned, { force: true })
+    }
+  })
+
   test('hasExiftoolConfigFile: check if exiftool.config file is present', async () => {
     const log = debug.extend('test-07-hasExiftoolConfigFile')
     expect.assertions(2)
