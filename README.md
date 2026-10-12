@@ -23,7 +23,11 @@ let exiftool = await new Exiftool().init( '/www/site/images/myNicePhoto.jpg' )
 ```
 It is also possible to pass an array of strings to the ```init()``` method if you have more than one image.
 ```javascript
-let images = ['/www/site/images/one.jpg', '/www/site/images/two.jpg', '/www/site/images/three.jpg']
+let images = [
+  '/www/site/images/one.jpg',
+  '/www/site/images/two.jpg',
+  '/www/site/images/three.jpg',
+]
 let exiftool = await new Exiftool().init(images)
 ```
 
@@ -473,3 +477,6 @@ console.log(await exiftool.which())
 console.log(await exiftool.version())
 // 12.46
 ```
+
+### Credits
+- [@amanverma-wsu](https://github.com/amanverma-wsu): 11/10/2026 reported security advisory [GHSA-x5fh-67m4-8hmh](https://github.com/mattduffy/exiftool/security/advisories/GHSA-x5fh-67m4-8hmh) for v1.17.1 of this npm package.
