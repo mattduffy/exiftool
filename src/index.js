@@ -187,28 +187,43 @@ export class Exiftool {
       })
 
       process.on('close', (code) => {
-        if (code === 0) {
-          if (this._opts.outputFormat === '-json') {
-            output.stdout = JSON.parse(output.stdout)
-          }
-          resolve(output)
-        } else {
-          // error(process)
-          output.stderr = JSON.parse(output.stderr)
-          error(new Error(`Process exited with code ${code}: ${output.stderr}`))
-          reject(output)
+        // Any exception thrown in here would be uncaught and crash the node process, so
+        // all failures must be passed to reject() instead.
+        if (code !== 0) {
+          // exiftool writes plain text error messages to stderr, not JSON
+          const e = new Error(`Process exited with code ${code}: ${output.stderr.trim()}`)
+          e.code = code
+          e.stdout = output.stdout
+          e.stderr = output.stderr
+          err(e)
+          reject(e)
+          return
         }
+        if (this._opts.outputFormat === '-json') {
+          // exiftool exits cleanly with no output if there were no files to process
+          if (output.stdout.trim() === '') {
+            output.stdout = []
+            resolve(output)
+            return
+          }
+          try {
+            output.stdout = JSON.parse(output.stdout)
+          } catch (parseError) {
+            const e = new Error('Failed to parse exiftool JSON output.', { cause: parseError })
+            e.code = code
+            e.stdout = output.stdout
+            e.stderr = output.stderr
+            err(e)
+            reject(e)
+            return
+          }
+        }
+        resolve(output)
       })
 
       process.on('error', (e) => {
         err('spawn error', e)
-        // if (output.stdout !== '') {
-        //   output.stdout = JSON.parse(output.stdout)
-        // }
-        // if (output.stderr !== '') {
-        //   output.stderr = JSON.parse(output.stderr)
-        // }
-        reject(JSON.parse(e))
+        reject(e)
       })
     })
     return metadata
